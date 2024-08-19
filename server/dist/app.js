@@ -4,7 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 var _a;
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.uid = void 0;
+exports.senders = exports.uid = void 0;
 const cors_1 = __importDefault(require("cors"));
 const dotenv_1 = __importDefault(require("dotenv"));
 const express_1 = __importDefault(require("express"));
@@ -22,16 +22,20 @@ app.use((0, cors_1.default)());
 const httpServer = (0, http_1.createServer)(app);
 const mappings = {};
 const streams = {};
+const codecs = {};
+exports.senders = {};
 const io = new socket_io_1.Server(httpServer, {
     cors: {},
 });
 io.on("connection", (socket) => {
-    socket.on(types_1.SocketEvent.Connect, () => (0, socket_1.handleConnect)(socket));
+    socket.on(types_1.SocketEvent.Codecs, (codec) => {
+        codecs[socket.id] = codec;
+    });
     socket.on(types_1.SocketEvent.CreateRoom, () => {
-        (0, socket_1.handleCreateRoom)(socket, false, mappings, streams);
+        (0, socket_1.handleCreateRoom)(socket, false, mappings, streams, exports.senders, codecs);
     });
     socket.on(types_1.SocketEvent.JoinRoom, (roomID) => {
-        (0, socket_1.handleJoinRoom)(socket, roomID, false, mappings, streams);
+        (0, socket_1.handleJoinRoom)(socket, roomID, false, mappings, streams, exports.senders, codecs);
     });
 });
 httpServer.listen(PORT, () => logger_1.default.info(`Server listening on http:/localhost:${PORT}`));

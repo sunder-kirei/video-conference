@@ -3,7 +3,9 @@ import { ServerRTC } from "../socket/ServerRTC";
 
 export enum SocketEvent {
   /** Lifecycle Events */
-  Connect = "message",
+  Connect = "connect",
+  Disconnect = "disconnect",
+  Codecs = "codecs",
 
   /** Room Events */
   JoinRoom = "join-room",
@@ -27,4 +29,12 @@ export interface StreamMapping {
   [roomID: string]: {
     [socketID: string]: Map<string, MediaStream>;
   };
+}
+
+export interface Codecs {
+  [socketID: string]: RTCRtpCodec[];
+}
+
+export interface Senders {
+  [socketID: string]: Set<wrtc.RTCRtpSender>;
 }

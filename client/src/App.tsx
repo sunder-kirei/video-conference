@@ -28,11 +28,21 @@ function App() {
     return rtc.close();
   }, []);
 
+  streams.forEach((stream) => {
+    stream.onremovetrack = () => {
+      if (!stream.active)
+        setStreams((prev) => prev.filter((s) => s.id != stream.id));
+    };
+  });
+
   return (
     <div className="App">
-      {streams.map((stream) => (
-        <Video autoPlay width={500} height={500} srcObject={stream} />
-      ))}
+      {streams.map(
+        (stream) =>
+          stream.active && (
+            <Video autoPlay width={500} height={500} srcObject={stream} />
+          )
+      )}
       <video className="self" autoPlay width={500} height={500} />
       {genRoomID && <div>{genRoomID}</div>}
       <label htmlFor="roomID">Enter room ID</label>

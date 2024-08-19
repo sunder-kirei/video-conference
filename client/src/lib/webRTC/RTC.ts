@@ -44,7 +44,7 @@ export class RTC {
     this.setTrack = setTrack;
     this.constraints = constraints;
     if (config) this.config = config;
-    this.signaler = new SocketSignaler(io(socketURL));
+    this.signaler = new SocketSignaler(socketURL);
     this.isPolite = this.signaler.isPolite;
     this.onRoomJoinedCallback = onRoomJoinedCallback;
     this.setupSignalerListeners();

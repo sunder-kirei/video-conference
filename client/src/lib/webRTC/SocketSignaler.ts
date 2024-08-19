@@ -1,13 +1,20 @@
-import { Socket } from "socket.io-client";
+import { io, Socket } from "socket.io-client";
 import { Signaler } from "./Signaler";
 
 export enum EventName {
-  CreateRoom = "create-room",
+  /** Lifecycle Events */
+  Connect = "connect",
+  Disconnect = "disconnect",
+  Codecs = "codecs",
+
+  /** Room Events */
   JoinRoom = "join-room",
+  CreateRoom = "create-room",
+
+  /** RTC Events */
+  ICE = "rtc-ICE",
   Offer = "rtc-description",
   RoomJoinAck = "room-joined",
-  ICE = "rtc-ICE",
-  Connect = "connect",
 }
 
 export interface RoomAck {
@@ -20,10 +27,15 @@ export class SocketSignaler extends Signaler {
   socket: Socket;
   isPolite: boolean;
 
-  constructor(socket: Socket) {
+  constructor(socketURL: string) {
     super();
-    this.socket = socket;
+    this.socket = io(socketURL);
     this.isPolite = true;
+  }
+
+  private sendConfig() {
+    const capabilities = RTCRtpReceiver.getCapabilities("video");
+    this.socket.emit(EventName.Codecs, capabilities?.codecs ?? []);
   }
 
   setupListeners(
@@ -32,7 +44,15 @@ export class SocketSignaler extends Signaler {
     onRoomJoined: (params?: any) => void
   ) {
     // on connect
-    this.socket.on(EventName.Connect, () => console.log("Connected!"));
+    this.socket.on(EventName.Connect, () => {
+      this.sendConfig();
+    });
+
+    // on disconnect
+    window.onbeforeunload = (event) => {
+      this.socket.emit(EventName.Disconnect);
+    };
+
     // on ICE candidate
     this.socket.on(EventName.ICE, onICECandidate);
 

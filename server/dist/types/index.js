@@ -4,7 +4,9 @@ exports.SocketEvent = void 0;
 var SocketEvent;
 (function (SocketEvent) {
     /** Lifecycle Events */
-    SocketEvent["Connect"] = "message";
+    SocketEvent["Connect"] = "connect";
+    SocketEvent["Disconnect"] = "disconnect";
+    SocketEvent["Codecs"] = "codecs";
     /** Room Events */
     SocketEvent["JoinRoom"] = "join-room";
     SocketEvent["CreateRoom"] = "create-room";

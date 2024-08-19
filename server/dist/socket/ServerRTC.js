@@ -16,7 +16,7 @@ exports.ServerRTC = void 0;
 const wrtc_1 = __importDefault(require("@roamhq/wrtc"));
 const types_1 = require("../types");
 class ServerRTC {
-    constructor(socket, roomID, mappings, streamMappings, config) {
+    constructor(socket, roomID, mappings, codecs, senders, streamMappings, config) {
         this.config = {
             iceServers: [
                 { urls: "stun:stun.l.google.com:19302" },
@@ -36,16 +36,65 @@ class ServerRTC {
         this.rtc = new wrtc_1.default.RTCPeerConnection(this.config);
         this.mappings = mappings;
         this.streamMappings = streamMappings;
+        this.codecs = codecs;
+        this.senders = senders;
         this.socket = socket;
         this.roomID = roomID;
         this.init();
         this.setupListeners();
         this.setupSocketListeners();
     }
+    free() {
+        if (this.senders[this.socket.id]) {
+            this.senders[this.socket.id].forEach((sender) => {
+                Object.entries(this.mappings[this.roomID]).forEach(([id, srtc]) => {
+                    if (id === this.socket.id)
+                        return;
+                    try {
+                        srtc.rtc.removeTrack(sender);
+                    }
+                    catch (err) {
+                        console.log("error at remove track");
+                    }
+                });
+            });
+        }
+        this.rtc.close();
+        this.socket.disconnect();
+        delete this.mappings[this.roomID][this.socket.id];
+        delete this.streamMappings[this.roomID][this.socket.id];
+        delete this.codecs[this.socket.id];
+    }
     init() {
         this.socket.join(this.roomID);
         this.mappings[this.roomID] = Object.assign(Object.assign({}, this.mappings[this.roomID]), { [this.socket.id]: this });
         this.streamMappings[this.roomID] = Object.assign(Object.assign({}, this.streamMappings[this.roomID]), { [this.socket.id]: new Map() });
+    }
+    addSVC(sender) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return;
+            if (this.codecs[this.socket.id].some((codec) => codec.mimeType === "video/VP9")) {
+                const parameters = sender.getParameters();
+                parameters.encodings = [
+                    {
+                        rid: "high",
+                        maxBitrate: 5000000, // 5 Mbps
+                        scaleResolutionDownBy: 1.0,
+                    },
+                    {
+                        rid: "medium",
+                        maxBitrate: 2500000, // 2.5 Mbps
+                        scaleResolutionDownBy: 2.0,
+                    },
+                    {
+                        rid: "low",
+                        maxBitrate: 1000000, // 1 Mbps
+                        scaleResolutionDownBy: 4.0,
+                    },
+                ];
+                yield sender.setParameters(parameters);
+            }
+        });
     }
     joinRoom() {
         Object.entries(this.streamMappings[this.roomID]).forEach((value) => {
@@ -54,7 +103,12 @@ class ServerRTC {
                 return;
             map.forEach((stream) => {
                 stream.getTracks().forEach((track) => {
-                    this.rtc.addTrack(track, stream);
+                    const sender = this.rtc.addTrack(track, stream);
+                    if (this.senders[id])
+                        this.senders[id].add(sender);
+                    else
+                        this.senders[id] = new Set([sender]);
+                    this.addSVC(sender);
                 });
             });
         });
@@ -80,6 +134,11 @@ class ServerRTC {
                         return;
                     // TODO
                     const sender = srtc.rtc.addTrack(track, stream);
+                    if (this.senders[this.socket.id])
+                        this.senders[this.socket.id].add(sender);
+                    else
+                        this.senders[this.socket.id] = new Set([sender]);
+                    this.addSVC(sender);
                 });
             });
         };
@@ -106,6 +165,12 @@ class ServerRTC {
         };
         // handle ICE candidates
         this.rtc.onicecandidate = ({ candidate }) => this.socket.emit(types_1.SocketEvent.ICE, candidate);
+        // remove RTC
+        this.rtc.oniceconnectionstatechange = () => {
+            if (this.rtc.iceConnectionState === "disconnected") {
+                this.free();
+            }
+        };
     }
     setupSocketListeners() {
         this.socket.on(types_1.SocketEvent.Offer, (offer) => __awaiter(this, void 0, void 0, function* () {
@@ -136,6 +201,10 @@ class ServerRTC {
                 const rtc = this.mappings[roomID][this.socket.id];
                 this.rtc.addIceCandidate(candidate);
             });
+        });
+        // remove RTC
+        this.socket.on(types_1.SocketEvent.Disconnect, () => {
+            this.free();
         });
     }
 }

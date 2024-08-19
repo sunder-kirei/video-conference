@@ -1,13 +1,8 @@
 import { Socket } from "socket.io";
-import wrtc from "@roamhq/wrtc";
 
-import { Mapping, SocketEvent, StreamMapping } from "../types";
+import { Codecs, Mapping, Senders, SocketEvent, StreamMapping } from "../types";
 import { uid } from "../app";
 import { ServerRTC } from "./ServerRTC";
-
-export function handleConnect(socket: Socket) {
-  console.log("Socket connected with id - " + socket.id);
-}
 
 function sendACK(socket: Socket, roomID: string, isPolite: boolean) {
   socket.emit(SocketEvent.RoomJoinAck, {
@@ -21,10 +16,12 @@ export function handleCreateRoom(
   socket: Socket,
   isPolite: boolean,
   mappings: Mapping,
-  streamMappings: StreamMapping
+  streamMappings: StreamMapping,
+  senders: Senders,
+  codecs: Codecs
 ) {
   const roomID = uid();
-  new ServerRTC(socket, roomID, mappings, streamMappings);
+  new ServerRTC(socket, roomID, mappings, codecs, senders, streamMappings);
   sendACK(socket, roomID, isPolite);
   return roomID;
 }
@@ -34,8 +31,10 @@ export function handleJoinRoom(
   roomID: string,
   isPolite: boolean,
   mappings: Mapping,
-  streamMappings: StreamMapping
+  streamMappings: StreamMapping,
+  senders: Senders,
+  codecs: Codecs
 ) {
-  new ServerRTC(socket, roomID, mappings, streamMappings);
+  new ServerRTC(socket, roomID, mappings, codecs, senders, streamMappings);
   sendACK(socket, roomID, isPolite);
 }

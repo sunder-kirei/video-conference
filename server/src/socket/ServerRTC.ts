@@ -1,13 +1,22 @@
 import wrtc from "@roamhq/wrtc";
 import { Socket } from "socket.io";
 
-import { Mapping, SocketEvent, Config, StreamMapping } from "../types";
+import {
+  Mapping,
+  SocketEvent,
+  Config,
+  StreamMapping,
+  Codecs,
+  Senders,
+} from "../types";
 
 export class ServerRTC {
   rtc: wrtc.RTCPeerConnection;
   mappings: Mapping;
   streamMappings: StreamMapping;
+  codecs: Codecs;
   roomID: string;
+  senders: Senders;
   socket: Socket;
   config: Config = {
     iceServers: [
@@ -28,6 +37,8 @@ export class ServerRTC {
     socket: Socket,
     roomID: string,
     mappings: Mapping,
+    codecs: Codecs,
+    senders: Senders,
     streamMappings: StreamMapping,
     config?: Config
   ) {
@@ -36,12 +47,37 @@ export class ServerRTC {
 
     this.mappings = mappings;
     this.streamMappings = streamMappings;
+    this.codecs = codecs;
+    this.senders = senders;
+
     this.socket = socket;
     this.roomID = roomID;
 
     this.init();
     this.setupListeners();
     this.setupSocketListeners();
+  }
+
+  free() {
+    if (this.senders[this.socket.id]) {
+      this.senders[this.socket.id].forEach((sender) => {
+        Object.entries(this.mappings[this.roomID]).forEach(([id, srtc]) => {
+          if (id === this.socket.id) return;
+          try {
+            srtc.rtc.removeTrack(sender);
+          } catch (err) {
+            console.log("error at remove track");
+          }
+        });
+      });
+    }
+
+    this.rtc.close();
+    this.socket.disconnect();
+
+    delete this.mappings[this.roomID][this.socket.id];
+    delete this.streamMappings[this.roomID][this.socket.id];
+    delete this.codecs[this.socket.id];
   }
 
   private init() {
@@ -57,6 +93,36 @@ export class ServerRTC {
     };
   }
 
+  private async addSVC(sender: wrtc.RTCRtpSender) {
+    return;
+    if (
+      this.codecs[this.socket.id].some(
+        (codec) => codec.mimeType === "video/VP9"
+      )
+    ) {
+      const parameters = sender.getParameters();
+      parameters.encodings = [
+        {
+          rid: "high",
+          maxBitrate: 5000000, // 5 Mbps
+          scaleResolutionDownBy: 1.0,
+        },
+        {
+          rid: "medium",
+          maxBitrate: 2500000, // 2.5 Mbps
+          scaleResolutionDownBy: 2.0,
+        },
+        {
+          rid: "low",
+          maxBitrate: 1000000, // 1 Mbps
+          scaleResolutionDownBy: 4.0,
+        },
+      ];
+
+      await sender.setParameters(parameters);
+    }
+  }
+
   private joinRoom() {
     Object.entries(this.streamMappings[this.roomID]).forEach((value) => {
       const [id, map] = value;
@@ -64,7 +130,10 @@ export class ServerRTC {
 
       map.forEach((stream) => {
         stream.getTracks().forEach((track) => {
-          this.rtc.addTrack(track, stream);
+          const sender = this.rtc.addTrack(track, stream);
+          if (this.senders[id]) this.senders[id].add(sender);
+          else this.senders[id] = new Set([sender]);
+          this.addSVC(sender);
         });
       });
     });
@@ -98,6 +167,10 @@ export class ServerRTC {
 
           // TODO
           const sender = srtc.rtc.addTrack(track, stream);
+          if (this.senders[this.socket.id])
+            this.senders[this.socket.id].add(sender);
+          else this.senders[this.socket.id] = new Set([sender]);
+          this.addSVC(sender);
         });
       });
     };
@@ -126,6 +199,13 @@ export class ServerRTC {
     // handle ICE candidates
     this.rtc.onicecandidate = ({ candidate }) =>
       this.socket.emit(SocketEvent.ICE, candidate);
+
+    // remove RTC
+    this.rtc.oniceconnectionstatechange = () => {
+      if (this.rtc.iceConnectionState === "disconnected") {
+        this.free();
+      }
+    };
   }
 
   private setupSocketListeners() {
@@ -164,6 +244,11 @@ export class ServerRTC {
         const rtc = this.mappings[roomID][this.socket.id];
         this.rtc.addIceCandidate(candidate);
       });
+    });
+
+    // remove RTC
+    this.socket.on(SocketEvent.Disconnect, () => {
+      this.free();
     });
   }
 }
