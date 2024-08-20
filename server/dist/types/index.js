@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.SocketEvent = void 0;
+exports.PublicKey = exports.PrivateKey = exports.SocketEvent = void 0;
 var SocketEvent;
 (function (SocketEvent) {
     /** Lifecycle Events */
@@ -15,3 +15,13 @@ var SocketEvent;
     SocketEvent["Offer"] = "rtc-description";
     SocketEvent["RoomJoinAck"] = "room-joined";
 })(SocketEvent || (exports.SocketEvent = SocketEvent = {}));
+var PrivateKey;
+(function (PrivateKey) {
+    PrivateKey["accessToken"] = "ACCESS_TOKEN_PRIVATE";
+    PrivateKey["refreshToken"] = "REFRESH_TOKEN_PRIVATE";
+})(PrivateKey || (exports.PrivateKey = PrivateKey = {}));
+var PublicKey;
+(function (PublicKey) {
+    PublicKey["accessToken"] = "ACCESS_TOKEN_PUBLIC";
+    PublicKey["refreshToken"] = "REFRESH_TOKEN_PUBLIC";
+})(PublicKey || (exports.PublicKey = PublicKey = {}));

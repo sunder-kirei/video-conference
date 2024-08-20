@@ -1,0 +1,5 @@
+{
+  "bcrypt": {
+    "saltFactor": 10
+  }
+}
