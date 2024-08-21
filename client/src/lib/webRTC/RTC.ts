@@ -1,22 +1,12 @@
-import { io } from "socket.io-client";
-import { Signaler } from "./Signaler";
-import { RoomAck, SocketSignaler } from "./SocketSignaler";
-
-export interface Config {
-  iceServers: { urls: string }[];
-}
-
-export interface Constraints {
-  audio: boolean;
-  video: boolean;
-}
+import { io, Socket } from "socket.io-client";
+import { Config, Constraints, RoomAck, SocketEvent } from "../../types";
 
 export class RTC {
   rtc?: RTCPeerConnection;
   self?: HTMLVideoElement;
   setTrack: React.Dispatch<React.SetStateAction<MediaStream[]>>;
   constraints: Constraints;
-  signaler: Signaler;
+  socket: Socket;
   isPolite: boolean;
   private onRoomJoinedCallback: (roomAck: RoomAck) => void;
   config: Config = {
@@ -35,19 +25,70 @@ export class RTC {
   };
 
   constructor(
-    socketURL: string,
     onRoomJoinedCallback: (roomAck: RoomAck) => void,
     setTrack: React.Dispatch<React.SetStateAction<MediaStream[]>>,
     config?: Config,
     constraints: Constraints = { audio: true, video: true }
   ) {
+    if (config) this.config = config;
+    this.socket = io(process.env.REACT_APP_BACKEND!, {
+      withCredentials: true,
+    });
     this.setTrack = setTrack;
     this.constraints = constraints;
-    if (config) this.config = config;
-    this.signaler = new SocketSignaler(socketURL);
-    this.isPolite = this.signaler.isPolite;
+    this.isPolite = true;
     this.onRoomJoinedCallback = onRoomJoinedCallback;
     this.setupSignalerListeners();
+  }
+
+  private setupSignalerListeners() {
+    let makingOffer = false;
+    let ignoreOffer = false;
+
+    // on connect
+    this.socket.on(SocketEvent.Connect, () => {
+      this.sendConfig();
+    });
+
+    // on disconnect
+    window.onbeforeunload = (event) => {
+      this.socket.emit(SocketEvent.Disconnect);
+    };
+
+    // on ICE candidate
+    this.socket.on(
+      SocketEvent.ICE,
+      async (candidate: RTCIceCandidate) =>
+        await this.rtc!.addIceCandidate(candidate)
+    );
+
+    // on remote offer
+    this.socket.on(SocketEvent.Offer, async (remoteOffer) => {
+      const offerCollision =
+        remoteOffer.type === "offer" &&
+        (makingOffer || this.rtc!.signalingState !== "stable");
+      ignoreOffer = !this.isPolite && offerCollision;
+
+      if (ignoreOffer) return;
+
+      await this.rtc!.setRemoteDescription(remoteOffer);
+      if (remoteOffer.type === "offer") {
+        await this.rtc!.setLocalDescription();
+        this.socket.emit(SocketEvent.Offer, this.rtc!.localDescription!);
+      }
+    });
+
+    // on room joined
+    this.socket.on(SocketEvent.RoomJoinAck, async (roomAck: RoomAck) => {
+      this.isPolite = roomAck.isPolite;
+      await this.initRTC();
+      this.onRoomJoinedCallback(roomAck);
+    });
+  }
+
+  private sendConfig() {
+    const capabilities = RTCRtpReceiver.getCapabilities("video");
+    this.socket.emit(SocketEvent.Codecs, capabilities?.codecs ?? []);
   }
 
   get connState() {
@@ -55,8 +96,21 @@ export class RTC {
     return this.rtc.connectionState;
   }
 
+  disconnect(): void {
+    this.socket.disconnect();
+  }
+
+  createRoom(): void {
+    this.socket.emit(SocketEvent.CreateRoom);
+  }
+
+  joinRoom(roomID: string): void {
+    this.socket.emit(SocketEvent.JoinRoom, roomID);
+  }
+
   close() {
     if (!this.rtc) return;
+    this.disconnect();
     this.rtc?.close();
   }
 
@@ -88,41 +142,6 @@ export class RTC {
     }
   }
 
-  createRoom() {
-    this.signaler.createRoom();
-  }
-
-  joinRoom(roomID: string) {
-    this.signaler.joinRoom(roomID);
-  }
-
-  private setupSignalerListeners() {
-    let makingOffer = false;
-    let ignoreOffer = false;
-
-    this.signaler.setupListeners(
-      async (remoteOffer) => {
-        const offerCollision =
-          remoteOffer.type === "offer" &&
-          (makingOffer || this.rtc!.signalingState !== "stable");
-        ignoreOffer = !this.isPolite && offerCollision;
-
-        if (ignoreOffer) return;
-
-        await this.rtc!.setRemoteDescription(remoteOffer);
-        if (remoteOffer.type === "offer") {
-          await this.rtc!.setLocalDescription();
-          this.signaler.sendOffer(this.rtc!.localDescription!);
-        }
-      },
-      async (candidate) => await this.rtc!.addIceCandidate(candidate),
-      async (roomAck) => {
-        await this.initRTC();
-        this.onRoomJoinedCallback(roomAck);
-      }
-    );
-  }
-
   private setupListeners() {
     if (!this.rtc) throw "RTC not init";
 
@@ -150,7 +169,7 @@ export class RTC {
       try {
         makingOffer = true;
         await this.rtc!.setLocalDescription();
-        this.signaler.sendOffer(this.rtc!.localDescription!);
+        this.socket.emit(SocketEvent.Offer, this.rtc!.localDescription!);
       } catch (err) {
         throw err;
       } finally {
@@ -167,6 +186,6 @@ export class RTC {
 
     // handle ICE candidates
     this.rtc.onicecandidate = ({ candidate }) =>
-      this.signaler.sendICE(candidate!);
+      this.socket.emit(SocketEvent.ICE, candidate!);
   }
 }
