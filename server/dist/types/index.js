@@ -14,6 +14,9 @@ var SocketEvent;
     SocketEvent["ICE"] = "rtc-ICE";
     SocketEvent["Offer"] = "rtc-description";
     SocketEvent["RoomJoinAck"] = "room-joined";
+    SocketEvent["NewStream"] = "new-stream";
+    /** Auth */
+    SocketEvent["InvalidAuth"] = "invalid-auth";
 })(SocketEvent || (exports.SocketEvent = SocketEvent = {}));
 var PrivateKey;
 (function (PrivateKey) {

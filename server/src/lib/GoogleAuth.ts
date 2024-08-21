@@ -8,6 +8,7 @@ import {
   GoogleAuthProfile,
   GoogleAuthResponse,
 } from "../types";
+import logger from "./logger";
 
 export class GoogleAuth {
   private oauth2Client: OAuth2Client;
@@ -68,7 +69,7 @@ export class GoogleAuth {
   }
 
   static init(clientID: string, clientSecret: string, redirectURL: string) {
-    if (this._instance) console.log("GoogleAuth reinitialized!");
+    if (this._instance) logger.warn("GoogleAuth reinitialized!");
 
     this._instance = new GoogleAuth(clientID, clientSecret, redirectURL);
   }

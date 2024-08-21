@@ -15,6 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.GoogleAuth = void 0;
 const googleapis_1 = require("googleapis");
 const crypto_1 = __importDefault(require("crypto"));
+const logger_1 = __importDefault(require("./logger"));
 class GoogleAuth {
     constructor(clientID, clientSecret, redirectURL, scope = [
         "https://www.googleapis.com/auth/userinfo.profile",
@@ -55,7 +56,7 @@ class GoogleAuth {
     }
     static init(clientID, clientSecret, redirectURL) {
         if (this._instance)
-            console.log("GoogleAuth reinitialized!");
+            logger_1.default.warn("GoogleAuth reinitialized!");
         this._instance = new GoogleAuth(clientID, clientSecret, redirectURL);
     }
     static get Instance() {

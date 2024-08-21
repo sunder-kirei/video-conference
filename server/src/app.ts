@@ -8,12 +8,14 @@ import { google, GoogleApis } from "googleapis";
 import crypto from "crypto";
 import session from "express-session";
 
-import { handleCreateRoom, handleJoinRoom } from "./socket";
+import socketService from "./socket/socket.service";
 import {
   Codecs,
   Mapping,
+  MemDB,
   Payload,
   PublicKey,
+  RTCUser,
   Senders,
   SocketEvent,
   StreamMapping,
@@ -24,7 +26,9 @@ import routes from "./routes";
 import connectToDB from "./lib/connectToDB";
 import { verifyJWT } from "./lib/jwt";
 import userService from "./service/user.service";
+import socket from "./socket";
 
+// TODO add entry in DB and use its id
 export const { randomUUID: uid } = new ShortUniqueId({ length: 5 });
 
 dotenv.config();
@@ -43,53 +47,13 @@ app.use(express.json());
 
 const httpServer = createServer(app);
 
-declare module "express-session" {
-  interface SessionData {
-    state: string;
-  }
-}
-
-const mappings: Mapping = {};
-const streams: StreamMapping = {};
-const codecs: Codecs = {};
-const senders: Senders = {};
+const memDB: MemDB = {
+  rooms: {},
+  socketInfo: new Map(),
+};
 
 const io = new Server(httpServer, {
   cors: {},
-});
-
-io.use(async (socket, next) => {
-  const accessToken: string = socket.handshake.auth.accessToken;
-  const { decoded, expired } = verifyJWT<Payload>(
-    accessToken,
-    PublicKey.accessToken
-  );
-
-  if (!decoded) {
-    socket.emit(SocketEvent.InvalidAuth);
-    return;
-  }
-  const user = await userService.findUser({
-    _id: decoded.id,
-    email: decoded.email,
-  });
-  // TODO
-  // map socket.id to user here
-  next();
-});
-
-io.on("connection", (socket) => {
-  socket.on(SocketEvent.Codecs, (codec: RTCRtpCodec[]) => {
-    codecs[socket.id] = codec;
-  });
-
-  socket.on(SocketEvent.CreateRoom, () => {
-    handleCreateRoom(socket, false, mappings, streams, senders, codecs);
-  });
-
-  socket.on(SocketEvent.JoinRoom, (roomID: string) => {
-    handleJoinRoom(socket, roomID, false, mappings, streams, senders, codecs);
-  });
 });
 
 httpServer.listen(PORT, async () => {
@@ -99,6 +63,7 @@ httpServer.listen(PORT, async () => {
     process.env.CLIENT_SECRET!,
     process.env.REDIRECT_URL!
   );
+  socket(io, memDB);
   routes(app);
   logger.info(`Server listening on http:/localhost:${PORT}`);
 });

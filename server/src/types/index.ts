@@ -3,7 +3,7 @@ import { ServerRTC } from "../socket/ServerRTC";
 import { google, GoogleApis } from "googleapis";
 import userSchema from "../schema/user.schema";
 import authSchema from "../schema/auth.schema";
-import { z } from "zod";
+import { StringValidation, z } from "zod";
 
 export enum SocketEvent {
   /** Lifecycle Events */
@@ -19,31 +19,59 @@ export enum SocketEvent {
   ICE = "rtc-ICE",
   Offer = "rtc-description",
   RoomJoinAck = "room-joined",
+  NewStream = "new-stream",
 
   /** Auth */
   InvalidAuth = "invalid-auth",
 }
 
+export interface RTCUser {
+  username: string;
+  profilePicture: string | null | undefined;
+}
+
+// init all fields except rtc on room joining
+export interface MemDB {
+  rooms: {
+    [roomID: string]: {
+      [socketID: string]: {
+        rtc?: ServerRTC;
+        // outgoing senders, remove at disconnection (forwarders of mediastream)
+        outgoingSenders: {
+          [socketID: string]: Set<wrtc.RTCRtpSender>;
+        };
+        // keep track of all ongoing streams to attach to new peers (socket.id -> <stream.id, stream>)
+        outgoingStreams: Map<string, MediaStream>;
+      };
+    };
+  };
+  socketInfo: Map<
+    string,
+    {
+      user: RTCUser;
+      codecs: RTCRtpCodec[];
+    }
+  >;
+}
+
 export interface Mapping {
   [roomID: string]: { [socketID: string]: ServerRTC };
 }
-
-export interface Config {
-  iceServers: { urls: string }[];
-}
-
 export interface StreamMapping {
   [roomID: string]: {
+    // socket.id -> <stream.id, stream>
     [socketID: string]: Map<string, MediaStream>;
   };
+}
+export interface Senders {
+  [socketID: string]: Set<wrtc.RTCRtpSender>;
 }
 
 export interface Codecs {
   [socketID: string]: RTCRtpCodec[];
 }
-
-export interface Senders {
-  [socketID: string]: Set<wrtc.RTCRtpSender>;
+export interface Config {
+  iceServers: { urls: string }[];
 }
 
 export type OAuth2Client = typeof GoogleApis.prototype.auth.OAuth2.prototype;

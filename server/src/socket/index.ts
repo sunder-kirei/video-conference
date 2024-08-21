@@ -1,40 +1,30 @@
-import { Socket } from "socket.io";
+import { Server } from "socket.io";
+import { verifyJWT } from "../lib/jwt";
+import userService from "../service/user.service";
+import { MemDB, Payload, PublicKey, SocketEvent } from "../types";
+import socketService from "./socket.service";
+import logger from "../lib/logger";
 
-import { Codecs, Mapping, Senders, SocketEvent, StreamMapping } from "../types";
-import { uid } from "../app";
-import { ServerRTC } from "./ServerRTC";
+function setup(io: Server, memDB: MemDB) {
+  io.use(async (socket, next) => {
+    await socketService.handleHandshake(socket, next, memDB);
+  });
 
-function sendACK(socket: Socket, roomID: string, isPolite: boolean) {
-  socket.emit(SocketEvent.RoomJoinAck, {
-    message: `${socket.id} joined room successfully`,
-    roomID,
-    isPolite: isPolite,
+  io.on("connection", (socket) => {
+    logger.info(socket.id);
+    
+    socket.on(SocketEvent.Codecs, (codecs: RTCRtpCodec[]) => {
+      socketService.handleCodecs(socket, codecs, memDB);
+    });
+
+    socket.on(SocketEvent.CreateRoom, () => {
+      socketService.handleCreateRoom(socket, false, memDB);
+    });
+
+    socket.on(SocketEvent.JoinRoom, (roomID: string) => {
+      socketService.handleJoinRoom(socket, roomID, false, memDB);
+    });
   });
 }
 
-export function handleCreateRoom(
-  socket: Socket,
-  isPolite: boolean,
-  mappings: Mapping,
-  streamMappings: StreamMapping,
-  senders: Senders,
-  codecs: Codecs
-) {
-  const roomID = uid();
-  new ServerRTC(socket, roomID, mappings, codecs, senders, streamMappings);
-  sendACK(socket, roomID, isPolite);
-  return roomID;
-}
-
-export function handleJoinRoom(
-  socket: Socket,
-  roomID: string,
-  isPolite: boolean,
-  mappings: Mapping,
-  streamMappings: StreamMapping,
-  senders: Senders,
-  codecs: Codecs
-) {
-  new ServerRTC(socket, roomID, mappings, codecs, senders, streamMappings);
-  sendACK(socket, roomID, isPolite);
-}
+export default setup;
