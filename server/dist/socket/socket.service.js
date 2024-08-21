@@ -12,11 +12,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+const cookie_1 = __importDefault(require("cookie"));
 const types_1 = require("../types");
 const app_1 = require("../app");
 const ServerRTC_1 = require("./ServerRTC");
 const jwt_1 = require("../lib/jwt");
 const user_service_1 = __importDefault(require("../service/user.service"));
+const logger_1 = __importDefault(require("../lib/logger"));
 function sendACK(socket, roomID, isPolite) {
     socket.emit(types_1.SocketEvent.RoomJoinAck, {
         message: `${socket.id} joined room successfully`,
@@ -26,29 +28,39 @@ function sendACK(socket, roomID, isPolite) {
 }
 function handleHandshake(socket, next, memDB) {
     return __awaiter(this, void 0, void 0, function* () {
-        const accessToken = socket.handshake.auth.accessToken;
-        const { decoded, expired } = (0, jwt_1.verifyJWT)(accessToken, types_1.PublicKey.accessToken);
-        if (!decoded) {
-            socket.emit(types_1.SocketEvent.InvalidAuth);
-            return;
+        try {
+            const cookieString = socket.handshake.headers.cookie;
+            if (!cookieString) {
+                return;
+            }
+            const cookies = cookie_1.default.parse(cookieString);
+            const accessToken = cookies.access_token;
+            const { decoded, expired } = (0, jwt_1.verifyJWT)(accessToken, types_1.PublicKey.accessToken);
+            if (!decoded) {
+                socket.emit(types_1.SocketEvent.InvalidAuth);
+                return;
+            }
+            const user = yield user_service_1.default.findUser({
+                _id: decoded.id,
+                email: decoded.email,
+            });
+            if (!user) {
+                socket.emit(types_1.SocketEvent.InvalidAuth);
+                return;
+            }
+            // map socket.id to user here
+            memDB.socketInfo.set(socket.id, {
+                user: {
+                    username: user.username,
+                    profilePicture: user.profilePicture,
+                },
+                codecs: [],
+            });
+            next();
         }
-        const user = yield user_service_1.default.findUser({
-            _id: decoded.id,
-            email: decoded.email,
-        });
-        if (!user) {
-            socket.emit(types_1.SocketEvent.InvalidAuth);
-            return;
+        catch (err) {
+            logger_1.default.error(err);
         }
-        // map socket.id to user here
-        memDB.socketInfo.set(socket.id, {
-            user: {
-                username: user.username,
-                profilePicture: user.profilePicture,
-            },
-            codecs: [],
-        });
-        next();
     });
 }
 function handleCodecs(socket, codecs, memDB) {

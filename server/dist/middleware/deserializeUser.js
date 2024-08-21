@@ -17,18 +17,18 @@ const jwt_1 = require("../lib/jwt");
 const types_1 = require("../types");
 const user_service_1 = __importDefault(require("../service/user.service"));
 const auth_service_1 = __importDefault(require("../service/auth.service"));
+const logger_1 = __importDefault(require("../lib/logger"));
 function deserializeUser(req, res, next) {
     return __awaiter(this, void 0, void 0, function* () {
-        var _a;
-        const accessToken = (_a = req.headers.authorization) === null || _a === void 0 ? void 0 : _a.split(" ")[1];
-        const refreshToken = req.headers["x-refresh"];
+        const accessToken = req.cookies.access_token;
+        const refreshToken = req.cookies.refresh_token;
         if (!accessToken) {
-            res.status(403);
+            res.status(403).send();
             return;
         }
         const { decoded, expired } = (0, jwt_1.verifyJWT)(accessToken, types_1.PublicKey.accessToken);
-        if (!decoded) {
-            res.status(403).send();
+        if (expired && !refreshToken) {
+            res.status(401).send();
             return;
         }
         if (expired && refreshToken) {
@@ -37,12 +37,17 @@ function deserializeUser(req, res, next) {
                 res.status(403).send();
                 return;
             }
-            res.setHeader("x-access-token", newAccessToken);
+            auth_service_1.default.attachCookies(res, newAccessToken, refreshToken);
+        }
+        if (!decoded) {
+            res.status(403).send();
+            return;
         }
         res.locals.user = yield user_service_1.default.findUser({
             _id: decoded.id,
             email: decoded.email,
         });
+        logger_1.default.info("calling next");
         next();
     });
 }

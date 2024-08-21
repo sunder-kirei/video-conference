@@ -7,6 +7,7 @@ import {
   Credentials,
   GoogleAuthProfile,
   GoogleAuthResponse,
+  GoogleAuthRequest,
 } from "../types";
 import logger from "./logger";
 
@@ -33,8 +34,9 @@ export class GoogleAuth {
     this.scope = scope;
   }
 
-  auth(req: Request, res: Response) {
-    const state = crypto.randomBytes(32).toString("hex");
+  auth(req: Request<{}, {}, {}, GoogleAuthRequest["query"]>, res: Response) {
+    const state = req.query.callback;
+    // const state = crypto.randomBytes(32).toString("hex");
     req.session.state = state;
 
     const authURL = this.oauth2Client.generateAuthUrl({
@@ -57,7 +59,7 @@ export class GoogleAuth {
       throw "State mismatch, possible CSRF attack.";
     } else {
       const { tokens } = await this.oauth2Client.getToken(code!);
-      return tokens;
+      return { tokens, state };
     }
   }
 

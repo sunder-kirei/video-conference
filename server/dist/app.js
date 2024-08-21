@@ -21,6 +21,7 @@ const http_1 = require("http");
 const short_unique_id_1 = __importDefault(require("short-unique-id"));
 const socket_io_1 = require("socket.io");
 const express_session_1 = __importDefault(require("express-session"));
+const cookie_parser_1 = __importDefault(require("cookie-parser"));
 const logger_1 = __importDefault(require("./lib/logger"));
 const GoogleAuth_1 = require("./lib/GoogleAuth");
 const routes_1 = __importDefault(require("./routes"));
@@ -31,7 +32,10 @@ exports.uid = new short_unique_id_1.default({ length: 5 }).randomUUID;
 dotenv_1.default.config();
 const PORT = (_a = process.env.PORT) !== null && _a !== void 0 ? _a : 3000;
 const app = (0, express_1.default)();
-app.use((0, cors_1.default)());
+app.use((0, cors_1.default)({
+    origin: process.env.FRONTEND_ORIGIN,
+}));
+app.use((0, cookie_parser_1.default)());
 app.use((0, express_session_1.default)({
     secret: "secret-key",
     resave: false,
@@ -44,7 +48,10 @@ const memDB = {
     socketInfo: new Map(),
 };
 const io = new socket_io_1.Server(httpServer, {
-    cors: {},
+    cors: {
+        credentials: true,
+        origin: process.env.FRONTEND_ORIGIN,
+    },
 });
 httpServer.listen(PORT, () => __awaiter(void 0, void 0, void 0, function* () {
     yield (0, connectToDB_1.default)();

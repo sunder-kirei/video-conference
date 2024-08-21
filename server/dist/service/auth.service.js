@@ -16,6 +16,22 @@ const GoogleAuth_1 = require("../lib/GoogleAuth");
 const jwt_1 = require("../lib/jwt");
 const types_1 = require("../types");
 const user_service_1 = __importDefault(require("./user.service"));
+function attachCookies(res, accessToken, refreshToken) {
+    res.cookie("access_token", accessToken, {
+        httpOnly: true,
+        // domain: "http://localhost:3000",
+        // path: "/",
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+    });
+    res.cookie("refresh_token", refreshToken, {
+        httpOnly: true,
+        // domain: "http://localhost:3000",
+        // path: "/",
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+    });
+}
 function reIssueAccessToken(refreshToken) {
     return __awaiter(this, void 0, void 0, function* () {
         const { decoded } = (0, jwt_1.verifyJWT)(refreshToken, types_1.PublicKey.refreshToken);
@@ -37,31 +53,34 @@ function genTokenPair(id, email) {
 }
 function googleCallbackHandler(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
-        const tokens = yield GoogleAuth_1.GoogleAuth.Instance.handleCallback(req, res);
+        const { tokens, state } = yield GoogleAuth_1.GoogleAuth.Instance.handleCallback(req, res);
         const profile = yield GoogleAuth_1.GoogleAuth.Instance.fetchProfile(tokens);
-        let accessToken = "";
-        let refreshToken = "";
-        const foundUser = yield user_service_1.default.findUser({ email: profile.email });
-        if (foundUser) {
-            if (!foundUser.profilePicture) {
-                foundUser.profilePicture = profile.picture;
-                yield foundUser.save();
+        const authResponse = {
+            callbackURL: state,
+            accessToken: "",
+            refreshToken: "",
+        };
+        const user = yield user_service_1.default.findUser({ email: profile.email });
+        if (user) {
+            if (!user.profilePicture) {
+                user.profilePicture = profile.picture;
+                yield user.save();
             }
-            const tokens = yield genTokenPair(foundUser._id.toString(), profile.email);
-            accessToken = tokens.accessToken;
-            refreshToken = tokens.refreshToken;
+            const tokens = yield genTokenPair(user._id.toString(), profile.email);
+            authResponse.accessToken = tokens.accessToken;
+            authResponse.refreshToken = tokens.refreshToken;
         }
         else {
-            const createdUser = yield user_service_1.default.createUser({
+            const user = yield user_service_1.default.createUser({
                 email: profile.email,
                 username: profile.name,
                 profilePicture: profile.picture,
             });
-            const tokens = yield genTokenPair(createdUser.id, profile.email);
-            accessToken = tokens.accessToken;
-            refreshToken = tokens.refreshToken;
+            const tokens = yield genTokenPair(user.id, profile.email);
+            authResponse.accessToken = tokens.accessToken;
+            authResponse.refreshToken = tokens.refreshToken;
         }
-        return { accessToken, refreshToken };
+        return authResponse;
     });
 }
 function signInHandler(input) {
@@ -88,4 +107,5 @@ exports.default = {
     googleCallbackHandler,
     genTokenPair,
     signInHandler,
+    attachCookies,
 };

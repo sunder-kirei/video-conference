@@ -23,4 +23,12 @@ const googleAuthResponse = z.object({
   }),
 });
 
-export default { loginUserSchema, googleAuthResponse };
+const googleAuthRequest = z.object({
+  query: z.object({
+    callback: z
+      .string({ required_error: "callback is required." })
+      .url("callback must be a url"),
+  }),
+});
+
+export default { loginUserSchema, googleAuthResponse, googleAuthRequest };

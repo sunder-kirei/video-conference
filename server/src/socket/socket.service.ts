@@ -1,4 +1,5 @@
 import { Socket } from "socket.io";
+import cookie from "cookie";
 
 import {
   Codecs,
@@ -30,34 +31,43 @@ async function handleHandshake(
   next: (err?: ExtendedError) => void,
   memDB: MemDB
 ) {
-  const accessToken: string = socket.handshake.auth.accessToken;
-  const { decoded, expired } = verifyJWT<Payload>(
-    accessToken,
-    PublicKey.accessToken
-  );
+  try {
+    const cookieString = socket.handshake.headers.cookie;
+    if (!cookieString) {
+      return;
+    }
+    const cookies = cookie.parse(cookieString);
+    const accessToken: string = cookies.access_token;
+    const { decoded, expired } = verifyJWT<Payload>(
+      accessToken,
+      PublicKey.accessToken
+    );
 
-  if (!decoded) {
-    socket.emit(SocketEvent.InvalidAuth);
-    return;
-  }
-  const user = await userService.findUser({
-    _id: decoded.id,
-    email: decoded.email,
-  });
+    if (!decoded) {
+      socket.emit(SocketEvent.InvalidAuth);
+      return;
+    }
+    const user = await userService.findUser({
+      _id: decoded.id,
+      email: decoded.email,
+    });
 
-  if (!user) {
-    socket.emit(SocketEvent.InvalidAuth);
-    return;
+    if (!user) {
+      socket.emit(SocketEvent.InvalidAuth);
+      return;
+    }
+    // map socket.id to user here
+    memDB.socketInfo.set(socket.id, {
+      user: {
+        username: user.username,
+        profilePicture: user.profilePicture,
+      },
+      codecs: [],
+    });
+    next();
+  } catch (err) {
+    logger.error(err);
   }
-  // map socket.id to user here
-  memDB.socketInfo.set(socket.id, {
-    user: {
-      username: user.username,
-      profilePicture: user.profilePicture,
-    },
-    codecs: [],
-  });
-  next();
 }
 
 function handleCodecs(socket: Socket, codecs: RTCRtpCodec[], memDB: MemDB) {

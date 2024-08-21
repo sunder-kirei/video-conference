@@ -7,6 +7,7 @@ import { Server } from "socket.io";
 import { google, GoogleApis } from "googleapis";
 import crypto from "crypto";
 import session from "express-session";
+import cookieParser from "cookie-parser";
 
 import socketService from "./socket/socket.service";
 import {
@@ -35,7 +36,12 @@ dotenv.config();
 
 const PORT = process.env.PORT ?? 3000;
 const app = express();
-app.use(cors());
+app.use(
+  cors({
+    origin: process.env.FRONTEND_ORIGIN,
+  })
+);
+app.use(cookieParser());
 app.use(
   session({
     secret: "secret-key",
@@ -53,7 +59,10 @@ const memDB: MemDB = {
 };
 
 const io = new Server(httpServer, {
-  cors: {},
+  cors: {
+    credentials: true,
+    origin: process.env.FRONTEND_ORIGIN,
+  },
 });
 
 httpServer.listen(PORT, async () => {

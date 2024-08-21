@@ -1,14 +1,20 @@
 import { Request, Response, NextFunction } from "express";
 import { GoogleAuth } from "../lib/GoogleAuth";
 import {
+  AuthResponse,
   CreateUserSchema,
+  GoogleAuthRequest,
   GoogleAuthResponse,
   LoginUserSchema,
 } from "../types";
 import userService from "../service/user.service";
 import authService from "../service/auth.service";
 
-function googleAuthInit(req: Request, res: Response, next: NextFunction) {
+function googleAuthInit(
+  req: Request<{}, {}, {}, GoogleAuthRequest["query"]>,
+  res: Response,
+  next: NextFunction
+) {
   GoogleAuth.Instance.auth(req, res);
 }
 
@@ -17,16 +23,10 @@ async function googleAuthCallback(
   res: Response,
   next: NextFunction
 ) {
-  const { accessToken, refreshToken } = await authService.googleCallbackHandler(
-    req,
-    res
-  );
-  res.setHeader("x-access-token", accessToken);
-  res.setHeader("x-refresh-token", refreshToken);
-  res.send({
-    accessToken,
-    refreshToken,
-  });
+  const { accessToken, callbackURL, refreshToken } =
+    await authService.googleCallbackHandler(req, res);
+  authService.attachCookies(res, accessToken, refreshToken);
+  res.redirect(callbackURL);
   return;
 }
 
@@ -42,12 +42,12 @@ async function emailSignUp(
     return;
   }
 
-  res.status(201).send({
-    id: user._id,
-    email: user.email,
-    username: user.username,
-    profilePicture: user.profilePicture,
-  });
+  const { accessToken, refreshToken } = await authService.genTokenPair(
+    user.id,
+    user.email
+  );
+  authService.attachCookies(res, accessToken, refreshToken);
+  res.status(201).send("USER CREATED");
 }
 
 async function emailSignIn(
@@ -61,14 +61,8 @@ async function emailSignIn(
     res.status(statusCode).send();
     return;
   }
-
-  res.setHeader("x-access-token", accessToken!);
-  res.setHeader("x-refresh-token", refreshToken!);
-  res.send({
-    accessToken,
-    refreshToken,
-  });
-  return;
+  authService.attachCookies(res, accessToken!, refreshToken!);
+  res.status(200).send("OK");
 }
 
 export default {

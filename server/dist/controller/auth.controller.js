@@ -20,13 +20,9 @@ function googleAuthInit(req, res, next) {
 }
 function googleAuthCallback(req, res, next) {
     return __awaiter(this, void 0, void 0, function* () {
-        const { accessToken, refreshToken } = yield auth_service_1.default.googleCallbackHandler(req, res);
-        res.setHeader("x-access-token", accessToken);
-        res.setHeader("x-refresh-token", refreshToken);
-        res.send({
-            accessToken,
-            refreshToken,
-        });
+        const { accessToken, callbackURL, refreshToken } = yield auth_service_1.default.googleCallbackHandler(req, res);
+        auth_service_1.default.attachCookies(res, accessToken, refreshToken);
+        res.redirect(callbackURL);
         return;
     });
 }
@@ -38,12 +34,9 @@ function emailSignUp(req, res, next) {
             res.status(409).send();
             return;
         }
-        res.status(201).send({
-            id: user._id,
-            email: user.email,
-            username: user.username,
-            profilePicture: user.profilePicture,
-        });
+        const { accessToken, refreshToken } = yield auth_service_1.default.genTokenPair(user.id, user.email);
+        auth_service_1.default.attachCookies(res, accessToken, refreshToken);
+        res.status(201).send("USER CREATED");
     });
 }
 function emailSignIn(req, res, next) {
@@ -53,13 +46,8 @@ function emailSignIn(req, res, next) {
             res.status(statusCode).send();
             return;
         }
-        res.setHeader("x-access-token", accessToken);
-        res.setHeader("x-refresh-token", refreshToken);
-        res.send({
-            accessToken,
-            refreshToken,
-        });
-        return;
+        auth_service_1.default.attachCookies(res, accessToken, refreshToken);
+        res.status(200).send("OK");
     });
 }
 exports.default = {

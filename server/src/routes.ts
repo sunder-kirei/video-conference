@@ -7,6 +7,7 @@ import {
 } from "express";
 
 import authController from "./controller/auth.controller";
+import userController from "./controller/user.controller";
 import authSchema from "./schema/auth.schema";
 import userSchema from "./schema/user.schema";
 import validate from "./middleware/validate";
@@ -20,7 +21,11 @@ function routes(app: Express) {
     authController.googleAuthCallback
   );
 
-  app.get("/api/auth/google", authController.googleAuthInit);
+  app.get(
+    "/api/auth/google",
+    validate(authSchema.googleAuthRequest),
+    authController.googleAuthInit
+  );
 
   app.post(
     "/api/auth/email/signup",
@@ -34,20 +39,11 @@ function routes(app: Express) {
     authController.emailSignIn
   );
 
+  app.get("/api/user", deserializeUser, userController.getUserDetails);
+
   app.get("/api/healthcheck", (req, res, next) => {
     res.status(200);
     res.json("ok");
-  });
-
-  app.get("/api/test", deserializeUser, (req, res, next) => {
-    const { id, email, password, username, profilePicture } = res.locals.user;
-    res.send({
-      id,
-      email,
-      password,
-      username,
-      profilePicture,
-    });
   });
 
   app.use((err: any, req: Request, res: Response, next: NextFunction) => {

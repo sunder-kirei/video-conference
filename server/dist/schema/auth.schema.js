@@ -21,4 +21,11 @@ const googleAuthResponse = zod_1.z.object({
         state: zod_1.z.string(),
     }),
 });
-exports.default = { loginUserSchema, googleAuthResponse };
+const googleAuthRequest = zod_1.z.object({
+    query: zod_1.z.object({
+        callback: zod_1.z
+            .string({ required_error: "callback is required." })
+            .url("callback must be a url"),
+    }),
+});
+exports.default = { loginUserSchema, googleAuthResponse, googleAuthRequest };

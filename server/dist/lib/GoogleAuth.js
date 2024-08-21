@@ -14,7 +14,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.GoogleAuth = void 0;
 const googleapis_1 = require("googleapis");
-const crypto_1 = __importDefault(require("crypto"));
 const logger_1 = __importDefault(require("./logger"));
 class GoogleAuth {
     constructor(clientID, clientSecret, redirectURL, scope = [
@@ -25,7 +24,8 @@ class GoogleAuth {
         this.scope = scope;
     }
     auth(req, res) {
-        const state = crypto_1.default.randomBytes(32).toString("hex");
+        const state = req.query.callback;
+        // const state = crypto.randomBytes(32).toString("hex");
         req.session.state = state;
         const authURL = this.oauth2Client.generateAuthUrl({
             access_type: "offline",
@@ -43,7 +43,7 @@ class GoogleAuth {
             }
             else {
                 const { tokens } = yield this.oauth2Client.getToken(code);
-                return tokens;
+                return { tokens, state };
             }
         });
     }

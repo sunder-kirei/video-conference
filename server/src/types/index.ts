@@ -113,3 +113,12 @@ export type CreateUserSchema = z.infer<typeof userSchema.createUserSchema>;
 export type LoginUserSchema = z.infer<typeof authSchema.loginUserSchema>;
 
 export type GoogleAuthResponse = z.infer<typeof authSchema.googleAuthResponse>;
+
+export type GoogleAuthRequest = z.infer<typeof authSchema.googleAuthRequest>;
+
+export interface AuthResponse {
+  id: string;
+  email: string;
+  username: string;
+  profilePicture?: string | null;
+}
