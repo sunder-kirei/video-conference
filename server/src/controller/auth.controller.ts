@@ -47,7 +47,7 @@ async function emailSignUp(
     user.email
   );
   authService.attachCookies(res, accessToken, refreshToken);
-  res.status(201).send("USER CREATED");
+  res.status(201).send({ message: "USER CREATED" });
 }
 
 async function emailSignIn(
@@ -62,7 +62,7 @@ async function emailSignIn(
     return;
   }
   authService.attachCookies(res, accessToken!, refreshToken!);
-  res.status(200).send("OK");
+  res.status(200).send({ message: "OK" });
 }
 
 export default {

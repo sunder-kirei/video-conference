@@ -36,7 +36,7 @@ function emailSignUp(req, res, next) {
         }
         const { accessToken, refreshToken } = yield auth_service_1.default.genTokenPair(user.id, user.email);
         auth_service_1.default.attachCookies(res, accessToken, refreshToken);
-        res.status(201).send("USER CREATED");
+        res.status(201).send({ message: "USER CREATED" });
     });
 }
 function emailSignIn(req, res, next) {
@@ -47,7 +47,7 @@ function emailSignIn(req, res, next) {
             return;
         }
         auth_service_1.default.attachCookies(res, accessToken, refreshToken);
-        res.status(200).send("OK");
+        res.status(200).send({ message: "OK" });
     });
 }
 exports.default = {

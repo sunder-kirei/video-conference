@@ -1,5 +1,6 @@
 import { io, Socket } from "socket.io-client";
 import { Config, Constraints, RoomAck, SocketEvent } from "../../types";
+import logger from "../logger";
 
 export class RTC {
   rtc?: RTCPeerConnection;
@@ -151,7 +152,7 @@ export class RTC {
     this.rtc.ontrack = ({ streams, track }) => {
       // TODO
       streams.forEach((stream) => {
-        console.log(stream.id);
+        logger.info(stream.id);
 
         this.setTrack((prev) => {
           let foundStream = prev.find((s) => s.id === stream.id);

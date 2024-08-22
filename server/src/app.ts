@@ -38,7 +38,8 @@ const PORT = process.env.PORT ?? 3000;
 const app = express();
 app.use(
   cors({
-    origin: process.env.FRONTEND_ORIGIN,
+    origin: `${process.env.FRONTEND_ORIGIN}`,
+    credentials: true,
   })
 );
 app.use(cookieParser());

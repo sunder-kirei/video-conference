@@ -53,7 +53,7 @@ export interface CreateAccount {
   username: string;
   email: string;
   password: string;
-  confirmPassword: string;
+  passwordConfirmation: string;
 }
 
 export interface LoginUser {
