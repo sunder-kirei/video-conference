@@ -10,6 +10,7 @@ export enum SocketEvent {
   Connect = "connect",
   Disconnect = "disconnect",
   Codecs = "codecs",
+  Error = "error",
 
   /** Room Events */
   JoinRoom = "join-room",
@@ -20,6 +21,8 @@ export enum SocketEvent {
   Offer = "rtc-description",
   RoomJoinAck = "room-joined",
   NewStream = "new-stream",
+  RemoveTrack = "remove-track",
+  RemoveStream = "remove-stream",
 
   /** Auth */
   InvalidAuth = "invalid-auth",
@@ -38,7 +41,7 @@ export interface MemDB {
         rtc?: ServerRTC;
         // outgoing senders, remove at disconnection (forwarders of mediastream)
         outgoingSenders: {
-          [socketID: string]: Set<wrtc.RTCRtpSender>;
+          [socketID: string]: Map<string, wrtc.RTCRtpSender>;
         };
         // keep track of all ongoing streams to attach to new peers (socket.id -> <stream.id, stream>)
         outgoingStreams: Map<string, MediaStream>;

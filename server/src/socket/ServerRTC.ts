@@ -15,10 +15,6 @@ import logger from "../lib/logger";
 
 export class ServerRTC {
   rtc: wrtc.RTCPeerConnection;
-  // mappings: Mapping;
-  // streamMappings: StreamMapping;
-  // codecs: Codecs;
-  // senders: Senders;
   memDB: MemDB;
   roomID: string;
   socket: Socket;
@@ -37,23 +33,10 @@ export class ServerRTC {
     ],
   };
 
-  constructor(
-    socket: Socket,
-    roomID: string,
-    // mappings: Mapping,
-    // codecs: Codecs,
-    // senders: Senders,
-    // streamMappings: StreamMapping,
-    memDB: MemDB,
-    config?: Config
-  ) {
+  constructor(socket: Socket, roomID: string, memDB: MemDB, config?: Config) {
     if (config) this.config = config;
     this.rtc = new wrtc.RTCPeerConnection(this.config);
 
-    // this.mappings = mappings;
-    // this.streamMappings = streamMappings;
-    // this.codecs = codecs;
-    // this.senders = senders;
     this.memDB = memDB;
 
     this.socket = socket;
@@ -67,6 +50,17 @@ export class ServerRTC {
   free() {
     // remove all senders of this socket from all other clients
     try {
+      const outGoingStreams =
+        this.memDB.rooms[this.roomID][this.socket.id].outgoingStreams;
+
+      outGoingStreams.forEach((stream, streamID) => {
+        Object.entries(this.memDB.rooms[this.roomID]).forEach(
+          ([socketID, srtc]) => {
+            srtc.rtc?.socket.emit(SocketEvent.RemoveStream, streamID);
+          }
+        );
+      });
+
       const outgoingSenders =
         this.memDB.rooms[this.roomID][this.socket.id].outgoingSenders;
 
@@ -78,18 +72,6 @@ export class ServerRTC {
     } catch (err) {
       logger.error(err);
     }
-    // if (this.senders[this.socket.id]) {
-    //   this.senders[this.socket.id].forEach((sender) => {
-    //     Object.entries(this.mappings[this.roomID]).forEach(([id, srtc]) => {
-    //       if (id === this.socket.id) return;
-    //       try {
-    //         srtc.rtc.removeTrack(sender);
-    //       } catch (err) {
-    //         logger.warn("error at remove track");
-    //       }
-    //     });
-    //   });
-    // }
 
     this.rtc.close();
     this.socket.disconnect();
@@ -98,9 +80,6 @@ export class ServerRTC {
       outgoingSenders: {},
       outgoingStreams: new Map(),
     };
-    // delete this.mappings[this.roomID][this.socket.id];
-    // delete this.streamMappings[this.roomID][this.socket.id];
-    // delete this.codecs[this.socket.id];
   }
 
   private init() {
@@ -108,15 +87,6 @@ export class ServerRTC {
 
     // all other properties will be init on socket connection
     this.memDB.rooms[this.roomID][this.socket.id].rtc = this;
-
-    // this.mappings[this.roomID] = {
-    //   ...this.mappings[this.roomID],
-    //   [this.socket.id]: this,
-    // };
-    // this.streamMappings[this.roomID] = {
-    //   ...this.streamMappings[this.roomID],
-    //   [this.socket.id]: new Map(),
-    // };
   }
 
   private async addSVC(sender: wrtc.RTCRtpSender) {
@@ -150,22 +120,28 @@ export class ServerRTC {
   }
 
   private _addSender(
+    trackID: string,
     sender: wrtc.RTCRtpSender,
     streamOwner: string,
     receiver: ServerRTC
   ) {
-    if (
-      !this.memDB.rooms[this.roomID][streamOwner].outgoingSenders[
-        receiver.socket.id
-      ]
-    ) {
+    try {
+      console.log("calling add sender", trackID);
+      if (
+        !this.memDB.rooms[this.roomID][streamOwner].outgoingSenders[
+          receiver.socket.id
+        ]
+      ) {
+        this.memDB.rooms[this.roomID][streamOwner].outgoingSenders[
+          receiver.socket.id
+        ] = new Map();
+      }
       this.memDB.rooms[this.roomID][streamOwner].outgoingSenders[
         receiver.socket.id
-      ] = new Set();
+      ].set(trackID, sender);
+    } catch (err) {
+      logger.error(err);
     }
-    this.memDB.rooms[this.roomID][streamOwner].outgoingSenders[
-      receiver.socket.id
-    ].add(sender);
   }
 
   private _sendStream(
@@ -174,12 +150,16 @@ export class ServerRTC {
     streamOwner: RTCUser,
     receiver: ServerRTC
   ) {
-    const sender = receiver.rtc.addTrack(track, stream);
-    receiver.socket.emit(SocketEvent.NewStream, {
-      streamID: stream.id,
-      user: streamOwner,
-    });
-    return sender;
+    try {
+      const sender = receiver.rtc.addTrack(track, stream);
+      receiver.socket.emit(SocketEvent.NewStream, {
+        streamID: stream.id,
+        user: streamOwner,
+      });
+      return sender;
+    } catch (err) {
+      logger.error(err);
+    }
   }
 
   private joinRoom() {
@@ -197,25 +177,11 @@ export class ServerRTC {
               this.memDB.socketInfo.get(streamOwner)!.user,
               this
             );
-            this._addSender(sender, streamOwner, this);
+            if (sender) this._addSender(track.id, sender, streamOwner, this);
           });
         });
       }
     );
-
-    // Object.entries(this.streamMappings[this.roomID]).forEach((value) => {
-    //   const [id, map] = value;
-    //   if (id === this.socket.id) return;
-
-    //   map.forEach((stream) => {
-    //     stream.getTracks().forEach((track) => {
-    //       const sender = this.rtc.addTrack(track, stream);
-    //       if (this.senders[id]) this.senders[id].add(sender);
-    //       else this.senders[id] = new Set([sender]);
-    //       this.addSVC(sender);
-    //     });
-    //   });
-    // });
   }
 
   private setupListeners() {
@@ -223,6 +189,7 @@ export class ServerRTC {
       let makingOffer = false;
 
       this.rtc.onconnectionstatechange = () => {
+        logger.info(this.rtc.connectionState);
         if (this.rtc.connectionState === "connected") {
           this.joinRoom();
         }
@@ -235,6 +202,7 @@ export class ServerRTC {
       this.rtc.ontrack = ({ streams, track }) => {
         streams.forEach((stream) => {
           // store streams
+          logger.info(track);
           this.memDB.rooms[this.roomID][this.socket.id].outgoingStreams.set(
             stream.id,
             stream
@@ -253,31 +221,11 @@ export class ServerRTC {
                   this.memDB.socketInfo.get(this.socket.id)!.user,
                   data.rtc
                 );
-                this._addSender(sender, this.socket.id, data.rtc);
+                if (sender)
+                  this._addSender(track.id, sender, this.socket.id, data.rtc);
               }
             }
           );
-
-          // if (!this.streamMappings[this.roomID][this.socket.id].has(stream.id)) {
-          //   this.streamMappings[this.roomID][this.socket.id].set(
-          //     stream.id,
-          //     stream
-          //   );
-          // }
-          // stream.addTrack(track);
-
-          // Object.entries(this.mappings[this.roomID]).forEach((value) => {
-          //   const id = value[0],
-          //     srtc = value[1];
-          //   if (id === this.socket.id) return;
-
-          //   // TODO
-          //   const sender = srtc.rtc.addTrack(track, stream);
-          //   if (this.senders[this.socket.id])
-          //     this.senders[this.socket.id].add(sender);
-          //   else this.senders[this.socket.id] = new Set([sender]);
-          //   this.addSVC(sender);
-          // });
         });
       };
 
@@ -289,7 +237,10 @@ export class ServerRTC {
         }
         try {
           makingOffer = true;
-          const offer = await this.rtc.createOffer();
+          const offer = await this.rtc.createOffer({
+            offerToReceiveAudio: true,
+            offerToReceiveVideo: true,
+          });
           await this.rtc.setLocalDescription(offer);
           this.socket.emit(SocketEvent.Offer, this.rtc.localDescription);
         } catch (err) {
@@ -325,10 +276,6 @@ export class ServerRTC {
     this.socket.on(
       SocketEvent.Offer,
       async (offer: wrtc.RTCSessionDescription) => {
-        // this.socket.rooms.forEach(async (roomID, _) => {
-        // if (roomID === this.socket.id) return;
-
-        // const rtc = this.memDB[roomID][this.socket.id];
         const rtc = this.rtc;
 
         let makingOffer = false;
@@ -337,7 +284,9 @@ export class ServerRTC {
           offer.type === "offer" &&
           (makingOffer || this.rtc.signalingState !== "stable");
 
-        if (offerCollision) return;
+        if (offerCollision) {
+          return;
+        }
 
         await this.rtc.setRemoteDescription(offer);
         if (offer.type === "offer") {
@@ -352,12 +301,34 @@ export class ServerRTC {
     // on ICE candidate
     this.socket.on(SocketEvent.ICE, (candidate: wrtc.RTCIceCandidate) => {
       if (!candidate) return;
-      // this.socket.rooms.forEach((roomID, _) => {
-      // if (roomID === this.socket.id) return;
 
-      // const rtc = this.mappings[roomID][this.socket.id];
       this.rtc.addIceCandidate(candidate);
-      // });
+    });
+
+    this.socket.on(SocketEvent.RemoveTrack, (trackID: string) => {
+      try {
+        const outgoingSenders =
+          this.memDB.rooms[this.roomID][this.socket.id].outgoingSenders;
+        Object.entries(outgoingSenders).forEach(([socketID, senders]) => {
+          senders.forEach((sender, senderTrackID) => {
+            logger.info({ senderID: senderTrackID, trackID });
+            if (senderTrackID === trackID) {
+              sender.track?.stop();
+              this.memDB.rooms[this.roomID][socketID].rtc?.rtc.removeTrack(
+                sender
+              );
+              console.log("removetrackevent");
+
+              this.memDB.rooms[this.roomID][socketID].rtc?.socket.emit(
+                SocketEvent.RemoveTrack,
+                trackID
+              );
+            }
+          });
+        });
+      } catch (err) {
+        logger.error(err);
+      }
     });
 
     // remove RTC

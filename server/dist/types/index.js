@@ -7,6 +7,7 @@ var SocketEvent;
     SocketEvent["Connect"] = "connect";
     SocketEvent["Disconnect"] = "disconnect";
     SocketEvent["Codecs"] = "codecs";
+    SocketEvent["Error"] = "error";
     /** Room Events */
     SocketEvent["JoinRoom"] = "join-room";
     SocketEvent["CreateRoom"] = "create-room";
@@ -15,6 +16,8 @@ var SocketEvent;
     SocketEvent["Offer"] = "rtc-description";
     SocketEvent["RoomJoinAck"] = "room-joined";
     SocketEvent["NewStream"] = "new-stream";
+    SocketEvent["RemoveTrack"] = "remove-track";
+    SocketEvent["RemoveStream"] = "remove-stream";
     /** Auth */
     SocketEvent["InvalidAuth"] = "invalid-auth";
 })(SocketEvent || (exports.SocketEvent = SocketEvent = {}));

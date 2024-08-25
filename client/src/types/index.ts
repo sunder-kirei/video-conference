@@ -1,3 +1,4 @@
+import { RTC } from "../lib/webRTC/RTC";
 import store from "../store/store";
 
 export enum SocketEvent {
@@ -15,6 +16,8 @@ export enum SocketEvent {
   Offer = "rtc-description",
   RoomJoinAck = "room-joined",
   NewStream = "new-stream",
+  RemoveTrack = "remove-track",
+  RemoveStream = "remove-stream",
 
   /** Auth */
   InvalidAuth = "invalid-auth",
@@ -75,6 +78,20 @@ export interface User {
 
 export interface UserState {
   user: User | null;
+}
+
+export interface MediaInfo {
+  enabled: boolean;
+  hasPermission: boolean;
+  selectedDevice: MediaDeviceInfo | null;
+  availableDevices: MediaDeviceInfo[];
+}
+
+export interface MediaState {
+  video: MediaInfo;
+  audio: MediaInfo;
+  stream: MediaStream;
+  rtc: RTC | null;
 }
 
 export type RootState = ReturnType<typeof store.getState>;

@@ -1,17 +1,16 @@
 import { useRouteError } from "react-router-dom";
 import logger from "../lib/logger";
+import Page from "../components/ui/Page";
 
 export default function ErrorPage() {
   const error: any = useRouteError();
-  logger.error(error);
+  console.log(error);
 
   return (
-    <div id="error-page">
+    <Page id="error-page">
       <h1>Oops!</h1>
       <p>Sorry, an unexpected error has occured</p>
-      <p>
-        <i>{error}</i>
-      </p>
-    </div>
+      <p>{/* <i>{error}</i> */}</p>
+    </Page>
   );
 }

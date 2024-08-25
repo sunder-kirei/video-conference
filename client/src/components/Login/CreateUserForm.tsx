@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { motion } from "framer-motion";
+import { HTMLMotionProps, motion } from "framer-motion";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
 import logger from "../../lib/logger";
@@ -7,8 +7,9 @@ import authSchema, { CreateUserSchema } from "../../schema/auth.schema";
 import Button from "../ui/Button";
 import Input from "../ui/Input";
 import { useCreateUserMutation } from "../../store/services/auth";
+import { twMerge } from "tailwind-merge";
 
-function CreateAccountForm() {
+function CreateAccountForm(props: HTMLMotionProps<"form">) {
   const {
     handleSubmit,
     clearErrors,
@@ -62,7 +63,11 @@ function CreateAccountForm() {
       }}
       id="create-user"
       onSubmit={handleSubmit(onSubmit)}
-      className="flex flex-col items-center justify-center w-full gap-y-4 p-8"
+      {...props}
+      className={twMerge(
+        "flex flex-col items-center justify-center w-full gap-y-4 p-8",
+        props.className
+      )}
     >
       <Input
         fieldProps={{ control: control, name: "email" }}

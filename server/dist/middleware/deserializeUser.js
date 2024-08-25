@@ -17,7 +17,6 @@ const jwt_1 = require("../lib/jwt");
 const types_1 = require("../types");
 const user_service_1 = __importDefault(require("../service/user.service"));
 const auth_service_1 = __importDefault(require("../service/auth.service"));
-const logger_1 = __importDefault(require("../lib/logger"));
 function deserializeUser(req, res, next) {
     return __awaiter(this, void 0, void 0, function* () {
         const accessToken = req.cookies.access_token;
@@ -47,7 +46,6 @@ function deserializeUser(req, res, next) {
             _id: decoded.id,
             email: decoded.email,
         });
-        logger_1.default.info("calling next");
         next();
     });
 }

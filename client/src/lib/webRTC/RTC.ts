@@ -4,11 +4,12 @@ import logger from "../logger";
 
 export class RTC {
   rtc?: RTCPeerConnection;
-  self?: HTMLVideoElement;
   setTrack: React.Dispatch<React.SetStateAction<MediaStream[]>>;
+  stream: MediaStream;
   constraints: Constraints;
   socket: Socket;
   isPolite: boolean;
+  senders: Map<string, RTCRtpSender> = new Map();
   private onRoomJoinedCallback: (roomAck: RoomAck) => void;
   config: Config = {
     iceServers: [
@@ -26,6 +27,7 @@ export class RTC {
   };
 
   constructor(
+    stream: MediaStream,
     onRoomJoinedCallback: (roomAck: RoomAck) => void,
     setTrack: React.Dispatch<React.SetStateAction<MediaStream[]>>,
     config?: Config,
@@ -35,6 +37,7 @@ export class RTC {
     this.socket = io(process.env.REACT_APP_BACKEND!, {
       withCredentials: true,
     });
+    this.stream = stream;
     this.setTrack = setTrack;
     this.constraints = constraints;
     this.isPolite = true;
@@ -65,6 +68,7 @@ export class RTC {
 
     // on remote offer
     this.socket.on(SocketEvent.Offer, async (remoteOffer) => {
+      console.log(remoteOffer);
       const offerCollision =
         remoteOffer.type === "offer" &&
         (makingOffer || this.rtc!.signalingState !== "stable");
@@ -73,6 +77,7 @@ export class RTC {
       if (ignoreOffer) return;
 
       await this.rtc!.setRemoteDescription(remoteOffer);
+
       if (remoteOffer.type === "offer") {
         await this.rtc!.setLocalDescription();
         this.socket.emit(SocketEvent.Offer, this.rtc!.localDescription!);
@@ -85,6 +90,13 @@ export class RTC {
       await this.initRTC();
       this.onRoomJoinedCallback(roomAck);
     });
+
+    // on remote track remove
+    this.socket.on(SocketEvent.RemoveTrack, (trackID: string) =>
+      this.onRemoveTrack(trackID)
+    );
+
+    this.socket.on(SocketEvent.RemoveStream, (streamID: string) => {});
   }
 
   private sendConfig() {
@@ -115,31 +127,67 @@ export class RTC {
     this.rtc?.close();
   }
 
-  // add track for remote transmission and srcVideo element
-  async bindVideo(self: HTMLVideoElement) {
-    try {
-      this.self = self;
-      const stream = await navigator.mediaDevices.getUserMedia(
-        this.constraints
-      );
-      this.self.srcObject = stream;
-    } catch (err) {
-      throw err;
+  addTrack(track: MediaStreamTrack) {
+    if (!this.rtc) throw "RTC not init";
+
+    console.log("addTrack", track);
+    const sender = this.rtc!.addTrack(track, this.stream);
+    this.senders.set(track.id, sender);
+  }
+
+  removeTrack(track: MediaStreamTrack) {
+    if (!this.rtc) throw "RTC not init";
+    const sender = this.senders.get(track.id);
+    if (sender) {
+      this.rtc.removeTrack(sender);
+      this.senders.delete(track.id);
     }
+    this.socket.emit(SocketEvent.RemoveTrack, track.id);
+  }
+
+  onRemoveTrack(trackID: string) {
+    console.log("removetrackevent");
+    this.setTrack((streams) => {
+      streams.forEach((stream) => {
+        const foundTrack = stream.getTrackById(trackID);
+        console.log(foundTrack);
+        if (foundTrack) stream.removeTrack(foundTrack);
+      });
+      return { ...streams };
+    });
+  }
+
+  onRemoveStream(streamID: string) {
+    this.setTrack((prev) => prev.filter((stream) => stream.id !== streamID));
   }
 
   async initRTC() {
     try {
       this.rtc = new RTCPeerConnection(this.config);
-      const stream = await navigator.mediaDevices.getUserMedia(
-        this.constraints
-      );
-      stream.getTracks().forEach((track) => {
-        this.rtc!.addTrack(track, stream);
+      this.stream.getTracks().forEach((track) => {
+        this.addTrack(track);
       });
+      await this.connect();
       this.setupListeners();
     } catch (err) {
       throw err;
+    }
+  }
+
+  private async connect() {
+    let makingOffer = false;
+    try {
+      makingOffer = true;
+      const offer = await this.rtc?.createOffer({
+        offerToReceiveAudio: true,
+        offerToReceiveVideo: true,
+      });
+      await this.rtc!.setLocalDescription(offer);
+      this.socket.emit(SocketEvent.Offer, this.rtc!.localDescription!);
+    } catch (err) {
+      throw err;
+    } finally {
+      makingOffer = false;
     }
   }
 
@@ -152,7 +200,7 @@ export class RTC {
     this.rtc.ontrack = ({ streams, track }) => {
       // TODO
       streams.forEach((stream) => {
-        logger.info(stream.id);
+        logger.info({ stream: stream.id });
 
         this.setTrack((prev) => {
           let foundStream = prev.find((s) => s.id === stream.id);
@@ -167,15 +215,7 @@ export class RTC {
 
     //handle offer
     this.rtc.onnegotiationneeded = async () => {
-      try {
-        makingOffer = true;
-        await this.rtc!.setLocalDescription();
-        this.socket.emit(SocketEvent.Offer, this.rtc!.localDescription!);
-      } catch (err) {
-        throw err;
-      } finally {
-        makingOffer = false;
-      }
+      await this.connect();
     };
 
     // handle connection restart

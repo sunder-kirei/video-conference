@@ -10,7 +10,9 @@ module.exports = {
   prefix: "",
   theme: {
     extend: {
-      colors: {},
+      fontFamily: {
+        heading: '"Jersey 10"',
+      },
     },
   },
   plugins: [require("tailwindcss-animate")],

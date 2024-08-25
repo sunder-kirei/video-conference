@@ -6,7 +6,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.signJWT = signJWT;
 exports.verifyJWT = verifyJWT;
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
-const logger_1 = __importDefault(require("./logger"));
 const types_1 = require("../types");
 function signJWT(payload, keyType) {
     const key = process.env[keyType];
@@ -25,7 +24,6 @@ function verifyJWT(token, keyType) {
         };
     }
     catch (err) {
-        logger_1.default.error(err);
         return {
             expired: err.message === "jwt expired",
             decoded: null,

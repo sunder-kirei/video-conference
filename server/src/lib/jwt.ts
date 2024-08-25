@@ -26,7 +26,6 @@ export function verifyJWT<Payload>(
       decoded: decoded as Payload,
     };
   } catch (err: any) {
-    logger.error(err);
     return {
       expired: err.message === "jwt expired",
       decoded: null,

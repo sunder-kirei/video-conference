@@ -5,8 +5,26 @@
 body {
   height: 100vh;
   overflow: auto;
+  font-family: "Anek Devanagari", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 400;
+  font-style: normal;
+  font-variation-settings: "wdth" 100;
 }
 
 #root {
   height: 100%;
+  @apply flex flex-col;
+}
+
+.rnd_enabled {
+  @apply text-blue-600 border-blue-600 bg-blue-100;
+}
+
+.rnd_disabled {
+  @apply text-gray-200 bg-gray-400;
+}
+
+.rnd_no_permission {
+  @apply text-red-600 bg-red-100;
 }

@@ -49,6 +49,5 @@ export async function deserializeUser(
     _id: decoded.id,
     email: decoded.email,
   });
-  logger.info("calling next");
   next();
 }

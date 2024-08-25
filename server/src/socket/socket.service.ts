@@ -103,6 +103,11 @@ function handleJoinRoom(
   isPolite: boolean,
   memDB: MemDB
 ) {
+  const foundRoom = Object.keys(memDB.rooms).find((key) => key === roomID);
+  if (!foundRoom) {
+    socket.emit(SocketEvent.Error, "room already exists");
+    return;
+  }
   memDB.rooms[roomID][socket.id] = {
     outgoingSenders: {},
     outgoingStreams: new Map(),

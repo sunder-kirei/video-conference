@@ -21,6 +21,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import CreateAccountForm from "../components/Login/CreateUserForm";
 import LoginUserForm from "../components/Login/LoginUserForm";
 import GoogleAuthButton from "../components/GoogleAuthButton/GoogleAuthButton";
+import Page from "../components/ui/Page";
 
 type Props = {};
 
@@ -54,7 +55,7 @@ function LoginPage({}: Props) {
   };
 
   return (
-    <div className="h-full w-full grid grid-cols-2 items-center gap-x-4">
+    <Page className="grid grid-cols-2 items-center gap-x-4 overflow-y-hidden">
       <Carousel className="mx-auto p-12" images={images} data={data} />
       <main className="flex flex-col h-full justify-center items-center">
         <AnimatePresence mode="wait">
@@ -66,7 +67,7 @@ function LoginPage({}: Props) {
         </AnimatePresence>
         <GoogleAuthButton className="bg-green-400 mt-4" onClick={onSubmit} />
       </main>
-    </div>
+    </Page>
   );
 }
 
