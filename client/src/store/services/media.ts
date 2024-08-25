@@ -18,6 +18,25 @@ export const initThunk = createAsyncThunk("init", async (_, thunkApi) => {
   return { audioDevices, videoDevices, camera, microphone };
 });
 
+const createCanvas = () => {
+  const width = 640;
+  const height = 480;
+  const canvas = document.createElement("canvas") as HTMLCanvasElement;
+  canvas.width = width;
+  canvas.height = height;
+  canvas.id = "black__placeholder";
+  canvas.getContext("2d")?.fillRect(0, 0, width, height);
+
+  return canvas;
+};
+
+const destroyCanvas = () => {
+  const canvas = document.getElementById(
+    "black__placeholder"
+  ) as HTMLCanvasElement;
+  if (canvas) canvas.remove();
+};
+
 export const handleDeviceChange = createAsyncThunk(
   "devicechange",
   async (_, thunkApi) => {
@@ -85,16 +104,32 @@ export const addTrack = createAsyncThunk(
 );
 
 export const toggleTracks = createAsyncThunk(
-  "removetrack",
-  (type: "audio" | "video", thunkApi) => {
+  "toggletrack",
+  async (type: "audio" | "video", thunkApi) => {
     const state = (thunkApi.getState() as RootState).media;
 
     if (state[type].enabled) {
       // remove tracks
-      const tracks = state.stream.getTracks();
-      return tracks.filter((track) => {
+      const tracks = state.stream.getTracks().filter((track) => {
         return track.kind === type;
       });
+
+      if (tracks[0]?.readyState !== "ended") return tracks;
+
+      if (state[type].availableDevices.length === 0) return [];
+
+      const newTracks = (
+        await navigator.mediaDevices.getUserMedia({
+          [type]: {
+            deviceId: state[type].selectedDevice?.deviceId,
+          },
+        })
+      )
+        .getTracks()
+        .filter((track) => track.kind === type);
+
+      newTracks.forEach((track) => (track.enabled = false));
+      return newTracks;
     }
     return [];
   }
@@ -180,8 +215,24 @@ const slice = createSlice({
         const tracks = payload as MediaStreamTrack[];
         console.log(tracks);
         tracks.forEach((track) => {
-          track.enabled = !track.enabled;
-          state[meta.arg].streamEnabled = track.enabled;
+          // track.enabled = !track.enabled;
+          state[meta.arg].streamEnabled = !state[meta.arg].streamEnabled;
+          if (track.enabled) {
+            track.enabled = false;
+            const black = createCanvas().captureStream(1);
+            if (meta.arg === "video")
+              state.rtc?.replaceTrack(meta.arg, black.getVideoTracks()[0]);
+            track.stop();
+          } else {
+            track.enabled = true;
+            destroyCanvas();
+            const oldTrack = state.stream
+              .getTracks()
+              .find((track) => track.kind === meta.arg);
+            if (oldTrack) state.stream.removeTrack(oldTrack);
+            state.stream.addTrack(track);
+            state.rtc?.replaceTrack(meta.arg, track);
+          }
         });
         console.log(state.stream.getTracks());
       }

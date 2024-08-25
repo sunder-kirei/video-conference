@@ -1,5 +1,5 @@
 import { Mic, Video } from "lucide-react";
-import { VideoHTMLAttributes, useEffect, useRef } from "react";
+import { VideoHTMLAttributes, useEffect, useMemo, useRef } from "react";
 import media, {
   initThunk,
   selectMedia,
@@ -103,7 +103,9 @@ export default function StreamVideo() {
           <Mic />
         </RoundedButton>
         <RoundedButton
-          onClick={() => handleClick("video")}
+          onClick={() => {
+            handleClick("video");
+          }}
           className={
             media.video.hasPermission && media.video.availableDevices.length
               ? videoEnabled

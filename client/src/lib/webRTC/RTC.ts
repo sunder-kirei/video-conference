@@ -89,15 +89,15 @@ export class RTC {
     });
   }
 
-  toggleTrack(track: MediaStreamTrack) {
-    const transceiver = this.rtc
-      ?.getTransceivers()
-      .find((t) => t.sender.track?.id === track.id);
-    if (!transceiver) {
-      console.log("no transceiver");
-      return;
+  replaceTrack(kind: "audio" | "video", track: MediaStreamTrack) {
+    const sender = this.rtc
+      ?.getSenders()
+      .find((sender) => kind === sender.track?.kind);
+    if (!sender) {
+      console.log("damn");
     }
-    this.socket.emit(SocketEvent.ToggleTrack, transceiver?.mid);
+
+    sender?.replaceTrack(track);
   }
 
   private sendConfig() {

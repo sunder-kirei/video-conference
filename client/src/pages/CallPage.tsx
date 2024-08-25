@@ -32,6 +32,7 @@ function CallPage({}: Props) {
     } else {
       rtc.createRoom();
     }
+
     dispatch(createRTC(rtc));
   }, []);
 
@@ -41,6 +42,14 @@ function CallPage({}: Props) {
         <AppVideo key={stream.id} srcObject={stream} playsInline autoPlay />
       ))}
       <StreamVideo />
+
+      <button
+        onClick={() => {
+          remoteStreams.forEach((stream) => console.log(stream.getTracks()));
+        }}
+      >
+        click me
+      </button>
     </Page>
   );
 }
