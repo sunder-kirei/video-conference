@@ -21,8 +21,7 @@ export enum SocketEvent {
   Offer = "rtc-description",
   RoomJoinAck = "room-joined",
   NewStream = "new-stream",
-  RemoveTrack = "remove-track",
-  RemoveTrackAndStream = "remove-stream",
+  ToggleTrack = "toggle-track",
 
   /** Auth */
   InvalidAuth = "invalid-auth",

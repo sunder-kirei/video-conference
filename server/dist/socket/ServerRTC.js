@@ -54,9 +54,7 @@ class ServerRTC {
                     const transceiver = rtc === null || rtc === void 0 ? void 0 : rtc.rtc.getTransceivers().find((t) => { var _a; return ((_a = t.sender.track) === null || _a === void 0 ? void 0 : _a.id) === receiver.track.id; });
                     if (!transceiver)
                         throw "transceiver not found to remove track from.";
-                    // 2. remove the sender from sent tracks and call SocketEvent.RemoveTrack
-                    rtc === null || rtc === void 0 ? void 0 : rtc.rtc.removeTrack(transceiver.sender);
-                    rtc === null || rtc === void 0 ? void 0 : rtc.socket.emit(types_1.SocketEvent.RemoveTrackAndStream, transceiver.mid);
+                    // 2. remove the sender from sent tracks and call SocketEvent.RemoveTrack          });
                 });
             });
             delete this.memDB.rooms[this.roomID][this.socket.id];
@@ -125,7 +123,6 @@ class ServerRTC {
             event.streams.forEach((stream) => {
                 logger_1.default.info("_addtrack");
                 rtc.rtc.addTrack(event.track, stream);
-                rtc._restartConn();
             });
             logger_1.default.info(rtc.rtc.getSenders());
         }
@@ -209,36 +206,6 @@ class ServerRTC {
                 if (!candidate)
                     return;
                 this.rtc.addIceCandidate(candidate);
-            });
-            this.socket.on(types_1.SocketEvent.RemoveTrack, (transceiverID) => {
-                var _a;
-                try {
-                    // every transceiver handles on only one track send and recieve
-                    // 1. get the trackID of the removed track from transceiver
-                    console.log("removetrack event");
-                    const trackID = (_a = this.rtc
-                        .getTransceivers()
-                        .find((t) => t.mid === transceiverID)) === null || _a === void 0 ? void 0 : _a.receiver.track.id;
-                    if (!trackID)
-                        throw "track does not exist, logic error SocketEvent.RemoveTrack";
-                    // 2. find the event that added this track using trackID and remove that event so that new connections aren't forwarded discarded tracks
-                    this.memDB.rooms[this.roomID][this.socket.id].trackEvents.delete(trackID);
-                    // 3. get the transceivers of all the peers and find the removed track's sender using trackID and remove them
-                    Object.entries(this.memDB.rooms[this.roomID]).forEach(([socketID, { rtc, trackEvents }]) => {
-                        const transceiver = rtc === null || rtc === void 0 ? void 0 : rtc.rtc.getTransceivers().find((t) => { var _a; return ((_a = t.sender.track) === null || _a === void 0 ? void 0 : _a.id) === trackID; });
-                        if (!transceiver)
-                            throw "transceiver not found to remove track from.";
-                        rtc === null || rtc === void 0 ? void 0 : rtc.rtc.removeTrack(transceiver.sender);
-                        rtc === null || rtc === void 0 ? void 0 : rtc._restartConn();
-                        // 4. emit remove track event to all the peers with their transceiver's id
-                        rtc === null || rtc === void 0 ? void 0 : rtc.socket.emit(types_1.SocketEvent.RemoveTrack, transceiver.mid);
-                    });
-                    logger_1.default.info(this.rtc.getSenders());
-                    this._restartConn();
-                }
-                catch (err) {
-                    logger_1.default.error(err);
-                }
             });
             // remove RTC
             this.socket.on(types_1.SocketEvent.Disconnect, () => {

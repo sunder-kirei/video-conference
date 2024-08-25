@@ -31,7 +31,7 @@ export const handleDeviceChange = createAsyncThunk(
       );
 
       if (!prevDevice) {
-        await thunkApi.dispatch(removeTrack("audio"));
+        await thunkApi.dispatch(toggleTracks("audio"));
       }
     } else {
       const prevDevice = videoDevices.find(
@@ -39,7 +39,7 @@ export const handleDeviceChange = createAsyncThunk(
       );
 
       if (!prevDevice) {
-        await thunkApi.dispatch(removeTrack("video"));
+        await thunkApi.dispatch(toggleTracks("video"));
       }
     }
 
@@ -54,10 +54,10 @@ export const handlePermissionChange = createAsyncThunk(
 
     // remove tracks if permission denied or prompt
     if (!camera) {
-      await thunkApi.dispatch(removeTrack("video"));
+      await thunkApi.dispatch(toggleTracks("video"));
     }
     if (!microphone) {
-      await thunkApi.dispatch(removeTrack("audio"));
+      await thunkApi.dispatch(toggleTracks("audio"));
     }
 
     const { audioDevices, videoDevices } = await fetchDevices();
@@ -84,7 +84,7 @@ export const addTrack = createAsyncThunk(
   }
 );
 
-export const removeTrack = createAsyncThunk(
+export const toggleTracks = createAsyncThunk(
   "removetrack",
   (type: "audio" | "video", thunkApi) => {
     const state = (thunkApi.getState() as RootState).media;
@@ -104,6 +104,7 @@ const initialState = {
   availableDevices: [],
   selectedDevice: null,
   enabled: false,
+  streamEnabled: false,
   hasPermission: false,
 } as MediaInfo;
 
@@ -170,23 +171,20 @@ const slice = createSlice({
         }
       });
       state[meta.arg].enabled = true;
+      state[meta.arg].streamEnabled = true;
     });
 
-    builder.addCase(removeTrack.fulfilled, (state, { meta, payload }) => {
+    builder.addCase(toggleTracks.fulfilled, (state, { meta, payload }) => {
       if (state[meta.arg].enabled) {
         // remove tracks
         const tracks = payload as MediaStreamTrack[];
         console.log(tracks);
         tracks.forEach((track) => {
-          track.stop();
-          state.stream.removeTrack(track);
-          state.rtc?.removeTrack(track);
+          track.enabled = !track.enabled;
+          state[meta.arg].streamEnabled = track.enabled;
         });
         console.log(state.stream.getTracks());
       }
-
-      // enabled tells if the track is in stream
-      state[meta.arg].enabled = false;
     });
   },
 });

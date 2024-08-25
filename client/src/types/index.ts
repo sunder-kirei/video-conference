@@ -16,8 +16,7 @@ export enum SocketEvent {
   Offer = "rtc-description",
   RoomJoinAck = "room-joined",
   NewStream = "new-stream",
-  RemoveTrack = "remove-track",
-  RemoveTrackAndStream = "remove-stream",
+  ToggleTrack = "toggle-track",
 
   /** Auth */
   InvalidAuth = "invalid-auth",
@@ -83,6 +82,7 @@ export interface UserState {
 export interface MediaInfo {
   enabled: boolean;
   hasPermission: boolean;
+  streamEnabled: boolean;
   selectedDevice: MediaDeviceInfo | null;
   availableDevices: MediaDeviceInfo[];
 }

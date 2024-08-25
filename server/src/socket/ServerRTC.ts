@@ -67,9 +67,7 @@ export class ServerRTC {
             if (!transceiver)
               throw "transceiver not found to remove track from.";
 
-            // 2. remove the sender from sent tracks and call SocketEvent.RemoveTrack
-            rtc?.rtc.removeTrack(transceiver.sender);
-            rtc?.socket.emit(SocketEvent.RemoveTrackAndStream, transceiver.mid);
+            // 2. remove the sender from sent tracks and call SocketEvent.RemoveTrack          });
           });
         }
       );
@@ -143,7 +141,6 @@ export class ServerRTC {
       event.streams.forEach((stream) => {
         logger.info("_addtrack");
         rtc.rtc.addTrack(event.track, stream);
-        rtc._restartConn();
       });
       logger.info(rtc.rtc.getSenders());
     } catch (err) {
@@ -242,45 +239,6 @@ export class ServerRTC {
         if (!candidate) return;
 
         this.rtc.addIceCandidate(candidate);
-      });
-
-      this.socket.on(SocketEvent.RemoveTrack, (transceiverID: string) => {
-        try {
-          // every transceiver handles on only one track send and recieve
-
-          // 1. get the trackID of the removed track from transceiver
-          console.log("removetrack event");
-          const trackID = this.rtc
-            .getTransceivers()
-            .find((t) => t.mid === transceiverID)?.receiver.track.id;
-          if (!trackID)
-            throw "track does not exist, logic error SocketEvent.RemoveTrack";
-
-          // 2. find the event that added this track using trackID and remove that event so that new connections aren't forwarded discarded tracks
-          this.memDB.rooms[this.roomID][this.socket.id].trackEvents.delete(
-            trackID
-          );
-
-          // 3. get the transceivers of all the peers and find the removed track's sender using trackID and remove them
-          Object.entries(this.memDB.rooms[this.roomID]).forEach(
-            ([socketID, { rtc, trackEvents }]) => {
-              const transceiver = rtc?.rtc
-                .getTransceivers()
-                .find((t) => t.sender.track?.id === trackID);
-              if (!transceiver)
-                throw "transceiver not found to remove track from.";
-
-              rtc?.rtc.removeTrack(transceiver.sender);
-              rtc?._restartConn();
-              // 4. emit remove track event to all the peers with their transceiver's id
-              rtc?.socket.emit(SocketEvent.RemoveTrack, transceiver.mid);
-            }
-          );
-          logger.info(this.rtc.getSenders());
-          this._restartConn();
-        } catch (err) {
-          logger.error(err);
-        }
       });
 
       // remove RTC

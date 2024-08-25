@@ -6,7 +6,7 @@ import media, {
   addTrack,
   handleDeviceChange,
   handlePermissionChange,
-  removeTrack,
+  toggleTracks,
 } from "../../store/services/media";
 import user, { selectUser } from "../../store/services/user";
 import RoundedButton from "../ui/RoundedButton";
@@ -36,7 +36,7 @@ export default function StreamVideo() {
 
   const handleClick = (type: "audio" | "video") => {
     if (media[type].enabled) {
-      dispatch(removeTrack(type));
+      dispatch(toggleTracks(type));
     } else {
       dispatch(addTrack(type));
     }
@@ -69,9 +69,14 @@ export default function StreamVideo() {
     setup();
   }, []);
 
+  const videoEnabled = media.video.streamEnabled;
+  const audioEnabled = media.audio.streamEnabled;
+
+  console.log({ videoEnabled, audioEnabled });
+
   return (
     <div className="source-video w-full aspect-video flex relative flex-col justify-end">
-      {!media.video.enabled && media.audio.enabled && (
+      {!videoEnabled && audioEnabled && (
         <UserBadge
           user={user}
           className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-32 z-20"
@@ -89,7 +94,7 @@ export default function StreamVideo() {
           onClick={() => handleClick("audio")}
           className={
             media.audio.availableDevices.length && media.audio.hasPermission
-              ? media.audio.enabled
+              ? audioEnabled
                 ? "rnd_enabled"
                 : "rnd_disabled"
               : "rnd_no_permission"
@@ -101,7 +106,7 @@ export default function StreamVideo() {
           onClick={() => handleClick("video")}
           className={
             media.video.hasPermission && media.video.availableDevices.length
-              ? media.video.enabled
+              ? videoEnabled
                 ? "rnd_enabled"
                 : "rnd_disabled"
               : "rnd_no_permission"

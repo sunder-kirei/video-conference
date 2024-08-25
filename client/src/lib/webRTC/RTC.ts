@@ -87,18 +87,17 @@ export class RTC {
       await this.initRTC();
       this.onRoomJoinedCallback(roomAck);
     });
+  }
 
-    // on remote track remove
-    this.socket.on(SocketEvent.RemoveTrack, (transceiverID: string) =>
-      this.onRemoveTrack(transceiverID)
-    );
-
-    this.socket.on(
-      SocketEvent.RemoveTrackAndStream,
-      (transceiverID: string) => {
-        this.onRemoveTrackandStream(transceiverID);
-      }
-    );
+  toggleTrack(track: MediaStreamTrack) {
+    const transceiver = this.rtc
+      ?.getTransceivers()
+      .find((t) => t.sender.track?.id === track.id);
+    if (!transceiver) {
+      console.log("no transceiver");
+      return;
+    }
+    this.socket.emit(SocketEvent.ToggleTrack, transceiver?.mid);
   }
 
   private sendConfig() {
@@ -129,89 +128,15 @@ export class RTC {
     this.rtc?.close();
   }
 
-  private async _restartConn() {
-    const offer = await this.rtc?.createOffer({
-      offerToReceiveAudio: true,
-      offerToReceiveVideo: true,
-    });
-    await this.rtc?.setLocalDescription(offer);
-  }
-
+  // add track if not sending
+  // just enable if already sending
   addTrack(track: MediaStreamTrack) {
     if (!this.rtc) throw "RTC not init";
 
     console.log("_addtrack");
     console.log(this.rtc.connectionState);
     this.rtc.addTrack(track, this.stream);
-    this._restartConn();
     console.log(this.rtc.getTransceivers());
-  }
-
-  removeTrack(track: MediaStreamTrack) {
-    try {
-      if (!this.rtc) throw "RTC not init";
-      const transceiver = this.rtc
-        .getTransceivers()
-        .find((t) => t.sender.track?.id === track.id);
-
-      if (!transceiver)
-        throw "could not find the transceiver to remove track from";
-
-      this.rtc.removeTrack(transceiver.sender);
-      this._restartConn();
-      console.log(this.rtc.getTransceivers());
-      this.socket.emit(SocketEvent.RemoveTrack, transceiver.mid);
-    } catch (err) {
-      console.error(err);
-    }
-  }
-
-  onRemoveTrack(transceiverID: string) {
-    try {
-      console.log("removetrackevent", transceiverID);
-      const transceiver = this.rtc
-        ?.getTransceivers()
-        .find((t) => t.mid === transceiverID);
-
-      if (!transceiver) throw "could not find transceiver to remove track from";
-
-      transceiver.receiver.track.stop();
-      this.setTrack((streams) => {
-        streams.forEach((stream) => {
-          const foundTrack = stream.getTrackById(transceiver.receiver.track.id);
-
-          if (foundTrack) stream.removeTrack(foundTrack);
-        });
-        return streams;
-      });
-    } catch (err) {
-      console.log(err);
-    }
-  }
-
-  onRemoveTrackandStream(transceiverID: string) {
-    try {
-      const transceiver = this.rtc
-        ?.getTransceivers()
-        .find((t) => t.mid === transceiverID);
-
-      if (!transceiver) throw "could not find transceiver to remove track from";
-
-      transceiver.receiver.track.stop();
-      this.setTrack((streams) => {
-        return streams.filter((stream) => {
-          const foundTrack = stream.getTrackById(transceiver.receiver.track.id);
-
-          if (foundTrack) {
-            stream.removeTrack(foundTrack);
-            return false;
-          }
-          return true;
-        });
-      });
-    } catch (err) {
-      console.log(err);
-    }
   }
 
   async initRTC() {
