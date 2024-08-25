@@ -9,20 +9,21 @@ export class RTC {
   constraints: Constraints;
   socket: Socket;
   isPolite: boolean;
-  senders: Map<string, RTCRtpSender> = new Map();
+  makingOffer = false;
+  ignoreOffer = false;
   private onRoomJoinedCallback: (roomAck: RoomAck) => void;
   config: Config = {
     iceServers: [
       { urls: "stun:stun.l.google.com:19302" },
-      { urls: "stun:stun.l.google.com:5349" },
-      { urls: "stun:stun1.l.google.com:3478" },
-      { urls: "stun:stun1.l.google.com:5349" },
-      { urls: "stun:stun2.l.google.com:19302" },
-      { urls: "stun:stun2.l.google.com:5349" },
-      { urls: "stun:stun3.l.google.com:3478" },
-      { urls: "stun:stun3.l.google.com:5349" },
-      { urls: "stun:stun4.l.google.com:19302" },
-      { urls: "stun:stun4.l.google.com:5349" },
+      // { urls: "stun:stun.l.google.com:5349" },
+      // { urls: "stun:stun1.l.google.com:3478" },
+      // { urls: "stun:stun1.l.google.com:5349" },
+      // { urls: "stun:stun2.l.google.com:19302" },
+      // { urls: "stun:stun2.l.google.com:5349" },
+      // { urls: "stun:stun3.l.google.com:3478" },
+      // { urls: "stun:stun3.l.google.com:5349" },
+      // { urls: "stun:stun4.l.google.com:19302" },
+      // { urls: "stun:stun4.l.google.com:5349" },
     ],
   };
 
@@ -40,15 +41,12 @@ export class RTC {
     this.stream = stream;
     this.setTrack = setTrack;
     this.constraints = constraints;
-    this.isPolite = true;
+    this.isPolite = false;
     this.onRoomJoinedCallback = onRoomJoinedCallback;
     this.setupSignalerListeners();
   }
 
   private setupSignalerListeners() {
-    let makingOffer = false;
-    let ignoreOffer = false;
-
     // on connect
     this.socket.on(SocketEvent.Connect, () => {
       this.sendConfig();
@@ -68,13 +66,12 @@ export class RTC {
 
     // on remote offer
     this.socket.on(SocketEvent.Offer, async (remoteOffer) => {
-      console.log(remoteOffer);
       const offerCollision =
         remoteOffer.type === "offer" &&
-        (makingOffer || this.rtc!.signalingState !== "stable");
-      ignoreOffer = !this.isPolite && offerCollision;
+        (this.makingOffer || this.rtc!.signalingState !== "stable");
 
-      if (ignoreOffer) return;
+      this.ignoreOffer = !this.isPolite && offerCollision;
+      if (this.ignoreOffer) return;
 
       await this.rtc!.setRemoteDescription(remoteOffer);
 
@@ -92,11 +89,16 @@ export class RTC {
     });
 
     // on remote track remove
-    this.socket.on(SocketEvent.RemoveTrack, (trackID: string) =>
-      this.onRemoveTrack(trackID)
+    this.socket.on(SocketEvent.RemoveTrack, (transceiverID: string) =>
+      this.onRemoveTrack(transceiverID)
     );
 
-    this.socket.on(SocketEvent.RemoveStream, (streamID: string) => {});
+    this.socket.on(
+      SocketEvent.RemoveTrackAndStream,
+      (transceiverID: string) => {
+        this.onRemoveTrackandStream(transceiverID);
+      }
+    );
   }
 
   private sendConfig() {
@@ -127,43 +129,97 @@ export class RTC {
     this.rtc?.close();
   }
 
+  private async _restartConn() {
+    const offer = await this.rtc?.createOffer({
+      offerToReceiveAudio: true,
+      offerToReceiveVideo: true,
+    });
+    await this.rtc?.setLocalDescription(offer);
+  }
+
   addTrack(track: MediaStreamTrack) {
     if (!this.rtc) throw "RTC not init";
 
-    console.log("addTrack", track);
-    const sender = this.rtc!.addTrack(track, this.stream);
-    this.senders.set(track.id, sender);
+    console.log("_addtrack");
+    console.log(this.rtc.connectionState);
+    this.rtc.addTrack(track, this.stream);
+    this._restartConn();
+    console.log(this.rtc.getTransceivers());
   }
 
   removeTrack(track: MediaStreamTrack) {
-    if (!this.rtc) throw "RTC not init";
-    const sender = this.senders.get(track.id);
-    if (sender) {
-      this.rtc.removeTrack(sender);
-      this.senders.delete(track.id);
+    try {
+      if (!this.rtc) throw "RTC not init";
+      const transceiver = this.rtc
+        .getTransceivers()
+        .find((t) => t.sender.track?.id === track.id);
+
+      if (!transceiver)
+        throw "could not find the transceiver to remove track from";
+
+      this.rtc.removeTrack(transceiver.sender);
+      this._restartConn();
+      console.log(this.rtc.getTransceivers());
+      this.socket.emit(SocketEvent.RemoveTrack, transceiver.mid);
+    } catch (err) {
+      console.error(err);
     }
-    this.socket.emit(SocketEvent.RemoveTrack, track.id);
   }
 
-  onRemoveTrack(trackID: string) {
-    console.log("removetrackevent");
-    this.setTrack((streams) => {
-      streams.forEach((stream) => {
-        const foundTrack = stream.getTrackById(trackID);
-        console.log(foundTrack);
-        if (foundTrack) stream.removeTrack(foundTrack);
+  onRemoveTrack(transceiverID: string) {
+    try {
+      console.log("removetrackevent", transceiverID);
+      const transceiver = this.rtc
+        ?.getTransceivers()
+        .find((t) => t.mid === transceiverID);
+
+      if (!transceiver) throw "could not find transceiver to remove track from";
+
+      transceiver.receiver.track.stop();
+      this.setTrack((streams) => {
+        streams.forEach((stream) => {
+          const foundTrack = stream.getTrackById(transceiver.receiver.track.id);
+
+          if (foundTrack) stream.removeTrack(foundTrack);
+        });
+        return streams;
       });
-      return { ...streams };
-    });
+    } catch (err) {
+      console.log(err);
+    }
   }
 
-  onRemoveStream(streamID: string) {
-    this.setTrack((prev) => prev.filter((stream) => stream.id !== streamID));
+  onRemoveTrackandStream(transceiverID: string) {
+    try {
+      const transceiver = this.rtc
+        ?.getTransceivers()
+        .find((t) => t.mid === transceiverID);
+
+      if (!transceiver) throw "could not find transceiver to remove track from";
+
+      transceiver.receiver.track.stop();
+      this.setTrack((streams) => {
+        return streams.filter((stream) => {
+          const foundTrack = stream.getTrackById(transceiver.receiver.track.id);
+
+          if (foundTrack) {
+            stream.removeTrack(foundTrack);
+            return false;
+          }
+          return true;
+        });
+      });
+    } catch (err) {
+      console.log(err);
+    }
   }
 
   async initRTC() {
     try {
-      this.rtc = new RTCPeerConnection(this.config);
+      this.rtc = new RTCPeerConnection({
+        ...this.config,
+        iceCandidatePoolSize: 64,
+      });
       this.stream.getTracks().forEach((track) => {
         this.addTrack(track);
       });
@@ -175,9 +231,8 @@ export class RTC {
   }
 
   private async connect() {
-    let makingOffer = false;
     try {
-      makingOffer = true;
+      this.makingOffer = true;
       const offer = await this.rtc?.createOffer({
         offerToReceiveAudio: true,
         offerToReceiveVideo: true,
@@ -187,7 +242,7 @@ export class RTC {
     } catch (err) {
       throw err;
     } finally {
-      makingOffer = false;
+      this.makingOffer = false;
     }
   }
 
@@ -197,13 +252,13 @@ export class RTC {
     let makingOffer = false;
 
     // handle incoming remote tracks
-    this.rtc.ontrack = ({ streams, track }) => {
+    this.rtc.ontrack = ({ streams, track, receiver, transceiver }) => {
       // TODO
+      console.log("onstream");
       streams.forEach((stream) => {
-        logger.info({ stream: stream.id });
-
         this.setTrack((prev) => {
           let foundStream = prev.find((s) => s.id === stream.id);
+          console.log(stream.id);
           if (!foundStream) {
             foundStream = stream;
           }
@@ -215,18 +270,20 @@ export class RTC {
 
     //handle offer
     this.rtc.onnegotiationneeded = async () => {
+      console.log("negotiation needed");
       await this.connect();
     };
 
     // handle connection restart
     this.rtc.oniceconnectionstatechange = () => {
+      console.log(this.rtc?.connectionState);
       if (this.rtc!.iceConnectionState === "failed") {
-        this.rtc!.restartIce();
+        // this.rtc!.restartIce();
       }
     };
 
     // handle ICE candidates
     this.rtc.onicecandidate = ({ candidate }) =>
-      this.socket.emit(SocketEvent.ICE, candidate!);
+      candidate && this.socket.emit(SocketEvent.ICE, candidate);
   }
 }

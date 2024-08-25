@@ -38,7 +38,7 @@ function CallPage({}: Props) {
   return (
     <Page>
       {remoteStreams.map((stream) => (
-        <AppVideo srcObject={stream} playsInline autoPlay />
+        <AppVideo key={stream.id} srcObject={stream} playsInline autoPlay />
       ))}
       <StreamVideo />
     </Page>

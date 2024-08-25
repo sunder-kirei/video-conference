@@ -17,7 +17,7 @@ var SocketEvent;
     SocketEvent["RoomJoinAck"] = "room-joined";
     SocketEvent["NewStream"] = "new-stream";
     SocketEvent["RemoveTrack"] = "remove-track";
-    SocketEvent["RemoveStream"] = "remove-stream";
+    SocketEvent["RemoveTrackAndStream"] = "remove-stream";
     /** Auth */
     SocketEvent["InvalidAuth"] = "invalid-auth";
 })(SocketEvent || (exports.SocketEvent = SocketEvent = {}));

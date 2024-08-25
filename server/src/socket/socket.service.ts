@@ -87,8 +87,8 @@ function handleCreateRoom(socket: Socket, isPolite: boolean, memDB: MemDB) {
   const roomID = uid();
   memDB.rooms[roomID] = {
     [socket.id]: {
-      outgoingSenders: {},
-      outgoingStreams: new Map(),
+      trackEvents: new Map(),
+      rtc: undefined,
     },
   };
   socket.join(roomID);
@@ -109,8 +109,8 @@ function handleJoinRoom(
     return;
   }
   memDB.rooms[roomID][socket.id] = {
-    outgoingSenders: {},
-    outgoingStreams: new Map(),
+    trackEvents: new Map(),
+    rtc: undefined,
   };
   socket.join(roomID);
   new ServerRTC(socket, roomID, memDB);

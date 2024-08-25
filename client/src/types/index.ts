@@ -17,7 +17,7 @@ export enum SocketEvent {
   RoomJoinAck = "room-joined",
   NewStream = "new-stream",
   RemoveTrack = "remove-track",
-  RemoveStream = "remove-stream",
+  RemoveTrackAndStream = "remove-stream",
 
   /** Auth */
   InvalidAuth = "invalid-auth",

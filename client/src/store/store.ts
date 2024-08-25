@@ -11,7 +11,12 @@ const store = configureStore({
     media: mediaReducer,
   },
   middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware()
+    getDefaultMiddleware({
+      serializableCheck: {
+        ignoredPaths: ["media"],
+        ignoredActionPaths: ["payload", "meta"],
+      },
+    })
       .concat(authApi.middleware)
       .concat(userApi.middleware),
   devTools: true,

@@ -22,7 +22,7 @@ export enum SocketEvent {
   RoomJoinAck = "room-joined",
   NewStream = "new-stream",
   RemoveTrack = "remove-track",
-  RemoveStream = "remove-stream",
+  RemoveTrackAndStream = "remove-stream",
 
   /** Auth */
   InvalidAuth = "invalid-auth",
@@ -39,12 +39,7 @@ export interface MemDB {
     [roomID: string]: {
       [socketID: string]: {
         rtc?: ServerRTC;
-        // outgoing senders, remove at disconnection (forwarders of mediastream)
-        outgoingSenders: {
-          [socketID: string]: Map<string, wrtc.RTCRtpSender>;
-        };
-        // keep track of all ongoing streams to attach to new peers (socket.id -> <stream.id, stream>)
-        outgoingStreams: Map<string, MediaStream>;
+        trackEvents: Map<string, RTCTrackEvent>;
       };
     };
   };

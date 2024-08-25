@@ -92,9 +92,8 @@ export const removeTrack = createAsyncThunk(
     if (state[type].enabled) {
       // remove tracks
       const tracks = state.stream.getTracks();
-      return tracks.map((track) => {
-        console.log(track);
-        if (track.kind === type) return track;
+      return tracks.filter((track) => {
+        return track.kind === type;
       });
     }
     return [];
@@ -183,6 +182,7 @@ const slice = createSlice({
           state.stream.removeTrack(track);
           state.rtc?.removeTrack(track);
         });
+        console.log(state.stream.getTracks());
       }
 
       // enabled tells if the track is in stream

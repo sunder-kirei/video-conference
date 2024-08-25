@@ -18,24 +18,28 @@ export class ServerRTC {
   memDB: MemDB;
   roomID: string;
   socket: Socket;
+  makingOffer = false;
   config: Config = {
     iceServers: [
       { urls: "stun:stun.l.google.com:19302" },
-      { urls: "stun:stun.l.google.com:5349" },
-      { urls: "stun:stun1.l.google.com:3478" },
-      { urls: "stun:stun1.l.google.com:5349" },
-      { urls: "stun:stun2.l.google.com:19302" },
-      { urls: "stun:stun2.l.google.com:5349" },
-      { urls: "stun:stun3.l.google.com:3478" },
-      { urls: "stun:stun3.l.google.com:5349" },
-      { urls: "stun:stun4.l.google.com:19302" },
-      { urls: "stun:stun4.l.google.com:5349" },
+      // { urls: "stun:stun.l.google.com:5349" },
+      // { urls: "stun:stun1.l.google.com:3478" },
+      // { urls: "stun:stun1.l.google.com:5349" },
+      // { urls: "stun:stun2.l.google.com:19302" },
+      // { urls: "stun:stun2.l.google.com:5349" },
+      // { urls: "stun:stun3.l.google.com:3478" },
+      // { urls: "stun:stun3.l.google.com:5349" },
+      // { urls: "stun:stun4.l.google.com:19302" },
+      // { urls: "stun:stun4.l.google.com:5349" },
     ],
   };
 
   constructor(socket: Socket, roomID: string, memDB: MemDB, config?: Config) {
     if (config) this.config = config;
-    this.rtc = new wrtc.RTCPeerConnection(this.config);
+    this.rtc = new wrtc.RTCPeerConnection({
+      ...this.config,
+      iceCandidatePoolSize: 64,
+    });
 
     this.memDB = memDB;
 
@@ -50,42 +54,38 @@ export class ServerRTC {
   free() {
     // remove all senders of this socket from all other clients
     try {
-      const outGoingStreams =
-        this.memDB.rooms[this.roomID][this.socket.id].outgoingStreams;
+      logger.error("calling free");
+      const recievers = this.rtc.getReceivers();
 
-      outGoingStreams.forEach((stream, streamID) => {
-        Object.entries(this.memDB.rooms[this.roomID]).forEach(
-          ([socketID, srtc]) => {
-            srtc.rtc?.socket.emit(SocketEvent.RemoveStream, streamID);
-          }
-        );
-      });
+      Object.entries(this.memDB.rooms[this.roomID]).forEach(
+        ([socketID, { rtc, trackEvents }]) => {
+          recievers.forEach((receiver) => {
+            // 1. find the transceiver sending this track to the peer
+            const transceiver = rtc?.rtc
+              .getTransceivers()
+              .find((t) => t.sender.track?.id === receiver.track.id);
+            if (!transceiver)
+              throw "transceiver not found to remove track from.";
 
-      const outgoingSenders =
-        this.memDB.rooms[this.roomID][this.socket.id].outgoingSenders;
+            // 2. remove the sender from sent tracks and call SocketEvent.RemoveTrack
+            rtc?.rtc.removeTrack(transceiver.sender);
+            rtc?.socket.emit(SocketEvent.RemoveTrackAndStream, transceiver.mid);
+          });
+        }
+      );
 
-      Object.entries(outgoingSenders).forEach(([socketID, senders]) => {
-        senders.forEach((sender) =>
-          this.memDB.rooms[this.roomID][socketID].rtc?.rtc.removeTrack(sender)
-        );
-      });
+      delete this.memDB.rooms[this.roomID][this.socket.id];
+      this.socket.disconnect();
+      this.rtc.close();
     } catch (err) {
       logger.error(err);
     }
-
-    this.rtc.close();
-    this.socket.disconnect();
-
-    this.memDB.rooms[this.roomID][this.socket.id] = {
-      outgoingSenders: {},
-      outgoingStreams: new Map(),
-    };
   }
 
   private init() {
     this.socket.join(this.roomID);
 
-    // all other properties will be init on socket connection
+    // all other properties will be init on socket pconnection
     this.memDB.rooms[this.roomID][this.socket.id].rtc = this;
   }
 
@@ -119,124 +119,72 @@ export class ServerRTC {
     // }
   }
 
-  private _addSender(
-    trackID: string,
-    sender: wrtc.RTCRtpSender,
-    streamOwner: string,
-    receiver: ServerRTC
-  ) {
-    try {
-      console.log("calling add sender", trackID);
-      if (
-        !this.memDB.rooms[this.roomID][streamOwner].outgoingSenders[
-          receiver.socket.id
-        ]
-      ) {
-        this.memDB.rooms[this.roomID][streamOwner].outgoingSenders[
-          receiver.socket.id
-        ] = new Map();
-      }
-      this.memDB.rooms[this.roomID][streamOwner].outgoingSenders[
-        receiver.socket.id
-      ].set(trackID, sender);
-    } catch (err) {
-      logger.error(err);
-    }
-  }
-
-  private _sendStream(
-    track: wrtc.MediaStreamTrack,
-    stream: wrtc.MediaStream,
-    streamOwner: RTCUser,
-    receiver: ServerRTC
-  ) {
-    try {
-      const sender = receiver.rtc.addTrack(track, stream);
-      receiver.socket.emit(SocketEvent.NewStream, {
-        streamID: stream.id,
-        user: streamOwner,
-      });
-      return sender;
-    } catch (err) {
-      logger.error(err);
-    }
-  }
-
-  private joinRoom() {
-    // send all media streams to new peer,
-    // also add its RTCSender to the stream owner
+  private _onjoinroom() {
+    // _addtrack for each event in trackEvents of each peer
     Object.entries(this.memDB.rooms[this.roomID]).forEach(
-      ([streamOwner, data]) => {
-        if (streamOwner === this.socket.id) return;
-
-        data.outgoingStreams.forEach((stream) => {
-          stream.getTracks().forEach((track) => {
-            const sender = this._sendStream(
-              track,
-              stream,
-              this.memDB.socketInfo.get(streamOwner)!.user,
-              this
-            );
-            if (sender) this._addSender(track.id, sender, streamOwner, this);
-          });
-        });
+      ([socketID, { trackEvents }]) => {
+        trackEvents.forEach((event) => this._addtrack(event, this));
       }
     );
   }
 
+  private async _restartConn() {
+    if (this.rtc.signalingState === "stable") {
+      const offer = await this.rtc?.createOffer({
+        offerToReceiveAudio: true,
+        offerToReceiveVideo: true,
+      });
+      await this.rtc?.setLocalDescription(offer);
+    }
+  }
+
+  private _addtrack(event: RTCTrackEvent, rtc: ServerRTC) {
+    try {
+      event.streams.forEach((stream) => {
+        logger.info("_addtrack");
+        rtc.rtc.addTrack(event.track, stream);
+        rtc._restartConn();
+      });
+      logger.info(rtc.rtc.getSenders());
+    } catch (err) {
+      logger.error(err);
+    }
+  }
+
   private setupListeners() {
     try {
-      let makingOffer = false;
-
       this.rtc.onconnectionstatechange = () => {
         logger.info(this.rtc.connectionState);
         if (this.rtc.connectionState === "connected") {
-          this.joinRoom();
+          this._onjoinroom();
         }
-        if (this.rtc.connectionState === "closed") {
-          this.free();
-        }
+        // if (this.rtc.connectionState === "failed") this.rtc.restartIce();
       };
 
       // handle incoming remote tracks
-      this.rtc.ontrack = ({ streams, track }) => {
-        streams.forEach((stream) => {
-          // store streams
-          logger.info(track);
-          this.memDB.rooms[this.roomID][this.socket.id].outgoingStreams.set(
-            stream.id,
-            stream
-          );
-          stream.addTrack(track);
+      this.rtc.ontrack = (event) => {
+        logger.info("ontrack");
+        // rtpReceiver is automatically added to the rtc
+        // insert trackevent to trackevents to be used on later connections
+        this.memDB.rooms[this.roomID][this.socket.id].trackEvents.set(
+          event.track.id,
+          event
+        );
 
-          // send streams to all peers
-          Object.entries(this.memDB.rooms[this.roomID]).forEach(
-            ([receiverID, data]) => {
-              if (receiverID === this.socket.id) return;
-
-              if (data.rtc) {
-                const sender = this._sendStream(
-                  track,
-                  stream,
-                  this.memDB.socketInfo.get(this.socket.id)!.user,
-                  data.rtc
-                );
-                if (sender)
-                  this._addSender(track.id, sender, this.socket.id, data.rtc);
-              }
-            }
-          );
-        });
+        // add track to all peers
+        Object.entries(this.memDB.rooms[this.roomID]).forEach(
+          ([socketID, { rtc }]) => {
+            if (rtc?.rtc) this._addtrack(event, rtc);
+          }
+        );
       };
 
       // handle offer
       this.rtc.onnegotiationneeded = async () => {
-        if (this.rtc.connectionState === "closed") {
-          this.free();
-          return;
-        }
+        logger.info("negotiating");
+        logger.info(this.rtc.connectionState);
         try {
-          makingOffer = true;
+          this.makingOffer = true;
           const offer = await this.rtc.createOffer({
             offerToReceiveAudio: true,
             offerToReceiveVideo: true,
@@ -246,94 +194,101 @@ export class ServerRTC {
         } catch (err) {
           throw err;
         } finally {
-          makingOffer = false;
+          this.makingOffer = false;
         }
       };
 
       // handle connection restart
       this.rtc.oniceconnectionstatechange = () => {
+        logger.error(this.rtc.iceConnectionState);
         if (this.rtc.iceConnectionState === "failed") {
-          this.rtc.restartIce();
+          // this.rtc.restartIce();
         }
       };
 
       // handle ICE candidates
       this.rtc.onicecandidate = ({ candidate }) =>
-        this.socket.emit(SocketEvent.ICE, candidate);
-
-      // remove RTC
-      this.rtc.oniceconnectionstatechange = () => {
-        if (this.rtc.iceConnectionState === "disconnected") {
-          this.free();
-        }
-      };
+        candidate && this.socket.emit(SocketEvent.ICE, candidate);
     } catch (err) {
       logger.error(err);
     }
   }
 
   private setupSocketListeners() {
-    this.socket.on(
-      SocketEvent.Offer,
-      async (offer: wrtc.RTCSessionDescription) => {
-        const rtc = this.rtc;
+    try {
+      this.socket.on(
+        SocketEvent.Offer,
+        async (offer: wrtc.RTCSessionDescription) => {
+          const offerCollision =
+            offer.type === "offer" &&
+            (this.makingOffer || this.rtc.signalingState !== "stable");
 
-        let makingOffer = false;
+          if (offerCollision) {
+            return;
+          }
 
-        const offerCollision =
-          offer.type === "offer" &&
-          (makingOffer || this.rtc.signalingState !== "stable");
-
-        if (offerCollision) {
-          return;
+          await this.rtc.setRemoteDescription(offer);
+          if (offer.type === "offer") {
+            const answer = await this.rtc.createAnswer();
+            await this.rtc.setLocalDescription(answer);
+            this.socket.emit(SocketEvent.Offer, this.rtc.localDescription);
+          }
+          // });
         }
+      );
 
-        await this.rtc.setRemoteDescription(offer);
-        if (offer.type === "offer") {
-          const answer = await this.rtc.createAnswer();
-          await this.rtc.setLocalDescription(answer);
-          this.socket.emit(SocketEvent.Offer, this.rtc.localDescription);
-        }
-        // });
-      }
-    );
+      // on ICE candidate
+      this.socket.on(SocketEvent.ICE, (candidate: wrtc.RTCIceCandidate) => {
+        if (!candidate) return;
 
-    // on ICE candidate
-    this.socket.on(SocketEvent.ICE, (candidate: wrtc.RTCIceCandidate) => {
-      if (!candidate) return;
+        this.rtc.addIceCandidate(candidate);
+      });
 
-      this.rtc.addIceCandidate(candidate);
-    });
+      this.socket.on(SocketEvent.RemoveTrack, (transceiverID: string) => {
+        try {
+          // every transceiver handles on only one track send and recieve
 
-    this.socket.on(SocketEvent.RemoveTrack, (trackID: string) => {
-      try {
-        const outgoingSenders =
-          this.memDB.rooms[this.roomID][this.socket.id].outgoingSenders;
-        Object.entries(outgoingSenders).forEach(([socketID, senders]) => {
-          senders.forEach((sender, senderTrackID) => {
-            logger.info({ senderID: senderTrackID, trackID });
-            if (senderTrackID === trackID) {
-              sender.track?.stop();
-              this.memDB.rooms[this.roomID][socketID].rtc?.rtc.removeTrack(
-                sender
-              );
-              console.log("removetrackevent");
+          // 1. get the trackID of the removed track from transceiver
+          console.log("removetrack event");
+          const trackID = this.rtc
+            .getTransceivers()
+            .find((t) => t.mid === transceiverID)?.receiver.track.id;
+          if (!trackID)
+            throw "track does not exist, logic error SocketEvent.RemoveTrack";
 
-              this.memDB.rooms[this.roomID][socketID].rtc?.socket.emit(
-                SocketEvent.RemoveTrack,
-                trackID
-              );
+          // 2. find the event that added this track using trackID and remove that event so that new connections aren't forwarded discarded tracks
+          this.memDB.rooms[this.roomID][this.socket.id].trackEvents.delete(
+            trackID
+          );
+
+          // 3. get the transceivers of all the peers and find the removed track's sender using trackID and remove them
+          Object.entries(this.memDB.rooms[this.roomID]).forEach(
+            ([socketID, { rtc, trackEvents }]) => {
+              const transceiver = rtc?.rtc
+                .getTransceivers()
+                .find((t) => t.sender.track?.id === trackID);
+              if (!transceiver)
+                throw "transceiver not found to remove track from.";
+
+              rtc?.rtc.removeTrack(transceiver.sender);
+              rtc?._restartConn();
+              // 4. emit remove track event to all the peers with their transceiver's id
+              rtc?.socket.emit(SocketEvent.RemoveTrack, transceiver.mid);
             }
-          });
-        });
-      } catch (err) {
-        logger.error(err);
-      }
-    });
+          );
+          logger.info(this.rtc.getSenders());
+          this._restartConn();
+        } catch (err) {
+          logger.error(err);
+        }
+      });
 
-    // remove RTC
-    this.socket.on(SocketEvent.Disconnect, () => {
-      this.free();
-    });
+      // remove RTC
+      this.socket.on(SocketEvent.Disconnect, () => {
+        this.free();
+      });
+    } catch (err) {
+      logger.error(err);
+    }
   }
 }
