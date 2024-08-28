@@ -29,21 +29,22 @@ export default function Home({}: Props) {
   }
 
   return (
-    <Page id="home-page" className="flex items-center">
-      <StreamVideo />
+    <Page id="home-page" className="grid home-page">
+      <div className="h-full w-full flex items-center p-4">
+        <StreamVideo />
+      </div>
       <div className="w-full h-full flex flex-col items-center justify-center gap-y-4">
         <input
           title="roomID"
           placeholder="Enter roomID to join; blank to create"
-          className="p-4 rounded z-10 w-1/2 text-xl border outline-blue-600"
+          className="p-4 max-w-96 w-full min-w-fit rounded z-10 text-xl border outline-blue-600"
           value={roomID}
           onChange={({ target }) => setRoomID(target.value)}
         />
-        <Button onClick={() => handleSubmit()}>Join Room</Button>
+        <Button onClick={() => handleSubmit()}>
+          {roomID.length ? "Join Room" : "Create Room"}
+        </Button>
       </div>
-      <Button className="w-fit rounded-xl aspect-square p-4 absolute right-8 bottom-8">
-        <Plus size={"2rem"} />
-      </Button>
     </Page>
   );
 }

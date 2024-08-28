@@ -1,20 +1,28 @@
 import React from "react";
-import { User } from "../../types";
+import { RTCUser, User } from "../../types";
 import { motion } from "framer-motion";
 import { twMerge } from "tailwind-merge";
 
 function UserBadge({
   user,
+  noanimation,
   ...props
-}: React.HTMLAttributes<HTMLDivElement> & { user: User | null }) {
+}: React.HTMLAttributes<HTMLDivElement> & {
+  user: RTCUser | undefined | null;
+  noanimation?: boolean;
+}) {
   const profilePicture = user?.profilePicture ?? "/assets/user.png";
 
   return (
     <div {...props} className={twMerge("relative", props.className)}>
       <motion.img
-        whileHover={{
-          scale: 1.2,
-        }}
+        whileHover={
+          noanimation
+            ? {}
+            : {
+                scale: 1.2,
+              }
+        }
         alt="profile picture"
         className="h-full aspect-square rounded-full border-2 border-blue-600 cursor-pointer"
         src={profilePicture}

@@ -10,6 +10,7 @@ import AppVideo from "../components/ui/AppVideo";
 import RoundedButton from "../components/ui/RoundedButton";
 import { Copy, PhoneOff, Volume2, VolumeX } from "lucide-react";
 import toast from "react-hot-toast";
+import UserBadge from "../components/ui/UserBadge";
 
 type Props = {};
 
@@ -70,17 +71,35 @@ function CallPage({}: Props) {
   //   dispatch(createRTC(rtc));
   // }, []);
 
-  let streams = [] as number[];
-  for (let i = 0; i < 4; i++) streams.push(i);
-
   return (
     <Page className="flex flex-col">
-      <div className="video-grid h-full w-full p-4">
-        {streams.map((num) => (
-          <div className="w-full overflow-hidden grid place-items-center h-full">
-            <AppVideo key={num} playsInline autoPlay className="custom-video" />
-          </div>
-        ))}
+      <div className="video-grid h-full w-full overflow-y-auto p-4 items-center">
+        {remoteStreams.map((stream) => {
+          const user = remoteUsers.find(({ streams }) => {
+            if (streams.find((sid) => sid === stream.id)) return true;
+            return false;
+          });
+
+          return (
+            <div className="video-container" key={stream.id}>
+              <AppVideo playsInline autoPlay srcObject={stream} />
+              <UserBadge user={user?.user} className="user-badge" />
+              <span className="user-tag text-white absolute bottom-2 left-4 opacity-0 translate-y-8 custom_transition">
+                {user?.user.username}
+              </span>
+            </div>
+          );
+        })}
+        {/* test user for css */}
+        {/* <div className="video-container">
+          <AppVideo playsInline autoPlay />
+          <UserBadge user={null} className="user-badge" />
+          <span className="user-tag text-white absolute bottom-2 left-4 opacity-0 translate-y-8 custom_transition">
+            {}
+          </span>
+        </div> */}
+
+        <StreamVideo className="max-h-full" />
       </div>
       <div className="controls h-24 w-full flex items-center justify-center gap-x-4 relative font-semibold">
         <button
@@ -104,17 +123,6 @@ function CallPage({}: Props) {
           {isMuted ? <VolumeX /> : <Volume2 />}
         </RoundedButton>
       </div>
-      {/* {remoteStreams.map((stream) => (
-        <AppVideo
-          key={stream.id}
-          srcObject={stream}
-          playsInline
-          autoPlay
-          className="custom-video"
-        />
-      ))} */}
-
-      {/* <StreamVideo /> */}
 
       {/* <button
         onClick={() => {

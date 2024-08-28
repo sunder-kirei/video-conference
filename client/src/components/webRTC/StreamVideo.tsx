@@ -1,6 +1,6 @@
 import { Mic, Video } from "lucide-react";
 import { VideoHTMLAttributes, useEffect, useMemo, useRef } from "react";
-import media, {
+import {
   initThunk,
   selectMedia,
   addTrack,
@@ -15,7 +15,10 @@ import { useAppSelector, useAppDispatch } from "../../hooks/redux";
 import { twMerge } from "tailwind-merge";
 import AppVideo from "../ui/AppVideo";
 
-export default function StreamVideo() {
+export default function StreamVideo({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement>) {
   const media = useAppSelector(selectMedia);
   const user = useAppSelector(selectUser);
   const dispatch = useAppDispatch();
@@ -58,24 +61,30 @@ export default function StreamVideo() {
   const videoEnabled = media.video.streamEnabled;
   const audioEnabled = media.audio.streamEnabled;
 
-  console.log({ videoEnabled, audioEnabled });
-
   return (
-    <div className="source-video h-full w-full flex relative flex-col justify-end custom-video">
-      {!videoEnabled && audioEnabled && (
-        <UserBadge
-          user={user}
-          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-32 z-20"
-        />
-      )}
+    <div
+      {...props}
+      className={twMerge("video-container overflow-hidden", className)}
+    >
       <AppVideo
         id="source-video"
         srcObject={media.stream}
         autoPlay
         playsInline
-        className="absolute"
       />
-      <div className="controls flex items-end w-full h-full p-4 justify-center  z-10 gap-x-4">
+      {/* {!videoEnabled && audioEnabled && ( */}
+      <UserBadge
+        user={
+          user && {
+            username: user.username,
+            profilePicture: user.profilePicture,
+          }
+        }
+        className="user-badge"
+        noanimation
+      />
+      {/* )} */}
+      <div className="controls-container">
         <RoundedButton
           onClick={() => handleClick("audio")}
           className={
@@ -83,7 +92,7 @@ export default function StreamVideo() {
               ? audioEnabled
                 ? "rnd_enabled"
                 : "rnd_disabled"
-              : "rnd_no_permission"
+              : "rnd_no_permission" + " grid place-items-center"
           }
         >
           <Mic />
@@ -97,7 +106,7 @@ export default function StreamVideo() {
               ? videoEnabled
                 ? "rnd_enabled"
                 : "rnd_disabled"
-              : "rnd_no_permission"
+              : "rnd_no_permission" + " grid place-items-center"
           }
         >
           <Video />

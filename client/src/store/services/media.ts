@@ -30,13 +30,6 @@ const createCanvas = () => {
   return canvas;
 };
 
-const destroyCanvas = () => {
-  const canvas = document.getElementById(
-    "black__placeholder"
-  ) as HTMLCanvasElement;
-  if (canvas) canvas.remove();
-};
-
 export const handleDeviceChange = createAsyncThunk(
   "devicechange",
   async (_, thunkApi) => {
@@ -114,7 +107,7 @@ export const toggleTracks = createAsyncThunk(
         return track.kind === type;
       });
 
-      if (tracks[0]?.readyState !== "ended") return tracks;
+      if (tracks[0]?.enabled) return tracks;
 
       if (state[type].availableDevices.length === 0) return [];
 
@@ -154,6 +147,11 @@ const slice = createSlice({
   reducers: {
     createRTC: (state, action) => {
       state.rtc = action.payload;
+
+      const black = createCanvas().captureStream(1);
+      black.getVideoTracks()[0].enabled = false;
+      state.rtc?.addTrack(black.getVideoTracks()[0]);
+      state.stream.addTrack(black.getVideoTracks()[0]);
     },
   },
   extraReducers: (builder) => {
@@ -199,10 +197,16 @@ const slice = createSlice({
 
       if (!stream) return;
 
+      state.stream.getTracks().forEach((track) => {
+        if (track.kind === meta.arg) {
+          state.stream.removeTrack(track);
+        }
+      });
+
       stream.getTracks().forEach((track) => {
         if (track.kind === meta.arg) {
           state.stream.addTrack(track);
-          state.rtc?.addTrack(track);
+          state.rtc?.replaceTrack(meta.arg, track);
         }
       });
       state[meta.arg].enabled = true;
@@ -220,12 +224,15 @@ const slice = createSlice({
           if (track.enabled) {
             track.enabled = false;
             const black = createCanvas().captureStream(1);
-            if (meta.arg === "video")
+            black.getVideoTracks()[0].enabled = false;
+            if (meta.arg === "video") {
               state.rtc?.replaceTrack(meta.arg, black.getVideoTracks()[0]);
+              state.stream.removeTrack(track);
+              state.stream.addTrack(black.getVideoTracks()[0]);
+            }
             track.stop();
           } else {
             track.enabled = true;
-            destroyCanvas();
             const oldTrack = state.stream
               .getTracks()
               .find((track) => track.kind === meta.arg);
