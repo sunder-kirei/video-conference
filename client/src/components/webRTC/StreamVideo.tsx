@@ -12,22 +12,8 @@ import user, { selectUser } from "../../store/services/user";
 import RoundedButton from "../ui/RoundedButton";
 import UserBadge from "../ui/UserBadge";
 import { useAppSelector, useAppDispatch } from "../../hooks/redux";
-
-type PropsType = VideoHTMLAttributes<HTMLVideoElement> & {
-  srcObject: MediaStream;
-};
-
-export function AppVideo({ srcObject, ...props }: PropsType) {
-  const refVideo = useRef<HTMLVideoElement>(null);
-
-  useEffect(() => {
-    console.log("add stream callback");
-    if (!refVideo.current) return;
-    refVideo.current.srcObject = srcObject;
-  }, [srcObject]);
-
-  return <video ref={refVideo} {...props} />;
-}
+import { twMerge } from "tailwind-merge";
+import AppVideo from "../ui/AppVideo";
 
 export default function StreamVideo() {
   const media = useAppSelector(selectMedia);
@@ -75,7 +61,7 @@ export default function StreamVideo() {
   console.log({ videoEnabled, audioEnabled });
 
   return (
-    <div className="source-video w-full aspect-video flex relative flex-col justify-end">
+    <div className="source-video h-full w-full flex relative flex-col justify-end custom-video">
       {!videoEnabled && audioEnabled && (
         <UserBadge
           user={user}
@@ -85,9 +71,9 @@ export default function StreamVideo() {
       <AppVideo
         id="source-video"
         srcObject={media.stream}
-        className="aspect-video w-full border absolute bg-black object-cover rounded-sm"
         autoPlay
         playsInline
+        className="absolute"
       />
       <div className="controls flex items-end w-full h-full p-4 justify-center  z-10 gap-x-4">
         <RoundedButton

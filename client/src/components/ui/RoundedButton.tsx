@@ -10,7 +10,7 @@ function RoundedButton(
     <div
       {...props}
       className={twMerge(
-        "border p-4 w-fit aspect-square rounded-full",
+        "border p-4 w-fit aspect-square rounded-full cursor-pointer custom_transition",
         props.className
       )}
     />

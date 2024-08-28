@@ -9,11 +9,11 @@ import { RoomAck, User } from "../types";
 import Page from "../components/ui/Page";
 import { useAppDispatch, useAppSelector } from "../hooks/redux";
 import { Video, Mic, BadgePlus, Plus } from "lucide-react";
-import AppVideo from "../components/webRTC/Video";
+import AppVideo from "../components/webRTC/StreamVideo";
 import RoundedButton from "../components/ui/RoundedButton";
 import mediaReducers, { selectMedia } from "../store/services/media";
 import UserBadge from "../components/ui/UserBadge";
-import StreamVideo from "../components/webRTC/Video";
+import StreamVideo from "../components/webRTC/StreamVideo";
 import Button from "../components/ui/Button";
 import { RTC } from "../lib/webRTC/RTC";
 

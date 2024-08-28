@@ -1,55 +1,132 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import Page from "../components/ui/Page";
-import { useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { RTC } from "../lib/webRTC/RTC";
 import { useAppDispatch, useAppSelector } from "../hooks/redux";
 import { createRTC, selectMedia } from "../store/services/media";
-import { RoomAck } from "../types";
-import StreamVideo from "../components/webRTC/Video";
-import { AppVideo } from "../components/webRTC/Video";
+import { RoomAck, RTCUser } from "../types";
+import StreamVideo from "../components/webRTC/StreamVideo";
+import AppVideo from "../components/ui/AppVideo";
+import RoundedButton from "../components/ui/RoundedButton";
+import { Copy, PhoneOff, Volume2, VolumeX } from "lucide-react";
+import toast from "react-hot-toast";
 
 type Props = {};
 
 function CallPage({}: Props) {
   const [remoteStreams, setRemoteStreams] = useState<MediaStream[]>([]);
+  const [remoteUsers, setRemoteUsers] = useState<
+    { user: RTCUser; streams: string[] }[]
+  >([]);
   const { roomID } = useParams();
   const media = useAppSelector(selectMedia);
   const dispatch = useAppDispatch();
+  const location = useLocation();
   const navigate = useNavigate();
+  const [isMuted, setIsMuted] = useState(false);
 
   function onRoomJoined(roomAck: RoomAck) {
-    console.log(roomAck);
     navigate("/join/" + roomAck.roomID, {
       replace: true,
     });
   }
 
-  useEffect(() => {
-    const rtc = new RTC(media.stream, onRoomJoined, setRemoteStreams);
-    console.log(rtc);
-    if (roomID) {
-      rtc.joinRoom(roomID);
-    } else {
-      rtc.createRoom();
-    }
+  function handleMute() {
+    setIsMuted((prev) => {
+      const elements = document.querySelectorAll("audio, video") as NodeListOf<
+        HTMLVideoElement | HTMLAudioElement
+      >;
+      elements.forEach((item) => {
+        item.muted = !prev;
+      });
 
-    dispatch(createRTC(rtc));
-  }, []);
+      return !prev;
+    });
+  }
+
+  async function handleCopy() {
+    toast.promise(navigator.clipboard.writeText(window.location.href), {
+      loading: "Copying...",
+      success: <b>Copied to Clipboard!</b>,
+      error: <b>Clipboard permission disabled.</b>,
+    });
+  }
+
+  // const rtc = useMemo(() => {
+  //   return new RTC(
+  //     media.stream,
+  //     onRoomJoined,
+  //     setRemoteStreams,
+  //     setRemoteUsers
+  //   );
+  // }, []);
+
+  // useEffect(() => {
+  //   if (roomID) {
+  //     rtc.joinRoom(roomID);
+  //   } else {
+  //     rtc.createRoom();
+  //   }
+  //   dispatch(createRTC(rtc));
+  // }, []);
+
+  let streams = [] as number[];
+  for (let i = 0; i < 4; i++) streams.push(i);
 
   return (
-    <Page>
-      {remoteStreams.map((stream) => (
-        <AppVideo key={stream.id} srcObject={stream} playsInline autoPlay />
-      ))}
-      <StreamVideo />
+    <Page className="flex flex-col">
+      <div className="video-grid h-full w-full p-4">
+        {streams.map((num) => (
+          <div className="w-full overflow-hidden grid place-items-center h-full">
+            <AppVideo key={num} playsInline autoPlay className="custom-video" />
+          </div>
+        ))}
+      </div>
+      <div className="controls h-24 w-full flex items-center justify-center gap-x-4 relative font-semibold">
+        <button
+          className="absolute left-4 copy flex items-center justify-center gap-x-4 rounded-lg border-2 p-2 border-blue-600 text-blue-600 text-lg"
+          title="Copy link"
+          onClick={() => {
+            handleCopy();
+          }}
+        >
+          <Copy />
+          <span>{location.pathname}</span>
+        </button>
+        <RoundedButton className="rnd_danger" title="Hang up">
+          <PhoneOff />
+        </RoundedButton>
+        <RoundedButton
+          className={isMuted ? "rnd_danger" : "rnd_enabled"}
+          onClick={() => handleMute()}
+          title={isMuted ? "Enable audio" : "Disable audio"}
+        >
+          {isMuted ? <VolumeX /> : <Volume2 />}
+        </RoundedButton>
+      </div>
+      {/* {remoteStreams.map((stream) => (
+        <AppVideo
+          key={stream.id}
+          srcObject={stream}
+          playsInline
+          autoPlay
+          className="custom-video"
+        />
+      ))} */}
 
-      <button
+      {/* <StreamVideo /> */}
+
+      {/* <button
         onClick={() => {
-          remoteStreams.forEach((stream) => console.log(stream.getTracks()));
+          console.log("remoteStreams");
+          // remoteStreams.forEach((stream) => console.log(stream.id));
+          console.log(rtc.rtc?.getTransceivers());
+          console.log("remoteUser");
+          console.log({ remoteUsers });
         }}
       >
         click me
-      </button>
+      </button> */}
     </Page>
   );
 }

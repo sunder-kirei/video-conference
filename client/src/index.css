@@ -28,3 +28,41 @@ body {
 .rnd_no_permission {
   @apply text-red-600 bg-red-100;
 }
+
+.rnd_danger {
+  @apply border-red-500 text-red-500 bg-red-100;
+}
+
+.custom_transition {
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.video-grid {
+  /**
+     * User input values.
+     */
+  --grid-layout-gap: 10px;
+
+  --grid-column-count: 3;
+  --grid-item--min-width: 320px;
+
+  /**
+     * Calculated values.
+     */
+  --gap-count: calc(var(--grid-column-count) - 1);
+
+  --total-gap-width: calc(var(--gap-count) * var(--grid-layout-gap));
+
+  --grid-item--max-width: calc(
+    (100% - var(--total-gap-width)) / var(--grid-column-count)
+  );
+
+  display: grid;
+
+  grid-template-columns: repeat(
+    auto-fit,
+    minmax(max(var(--grid-item--min-width), var(--grid-item--max-width)), 1fr)
+  );
+
+  grid-gap: var(--grid-layout-gap);
+}

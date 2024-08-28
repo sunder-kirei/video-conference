@@ -1,10 +1,24 @@
 import { io, Socket } from "socket.io-client";
-import { Config, Constraints, RoomAck, SocketEvent } from "../../types";
+import {
+  Config,
+  Constraints,
+  RoomAck,
+  RTCUser,
+  SocketEvent,
+} from "../../types";
 import logger from "../logger";
 
 export class RTC {
   rtc?: RTCPeerConnection;
-  setTrack: React.Dispatch<React.SetStateAction<MediaStream[]>>;
+  setRemoteTrack: React.Dispatch<React.SetStateAction<MediaStream[]>>;
+  setRemoteUsers: React.Dispatch<
+    React.SetStateAction<
+      {
+        user: RTCUser;
+        streams: string[];
+      }[]
+    >
+  >;
   stream: MediaStream;
   constraints: Constraints;
   socket: Socket;
@@ -15,22 +29,30 @@ export class RTC {
   config: Config = {
     iceServers: [
       { urls: "stun:stun.l.google.com:19302" },
-      // { urls: "stun:stun.l.google.com:5349" },
-      // { urls: "stun:stun1.l.google.com:3478" },
-      // { urls: "stun:stun1.l.google.com:5349" },
-      // { urls: "stun:stun2.l.google.com:19302" },
-      // { urls: "stun:stun2.l.google.com:5349" },
-      // { urls: "stun:stun3.l.google.com:3478" },
-      // { urls: "stun:stun3.l.google.com:5349" },
-      // { urls: "stun:stun4.l.google.com:19302" },
-      // { urls: "stun:stun4.l.google.com:5349" },
+      { urls: "stun:stun.l.google.com:5349" },
+      { urls: "stun:stun1.l.google.com:3478" },
+      { urls: "stun:stun1.l.google.com:5349" },
+      { urls: "stun:stun2.l.google.com:19302" },
+      { urls: "stun:stun2.l.google.com:5349" },
+      { urls: "stun:stun3.l.google.com:3478" },
+      { urls: "stun:stun3.l.google.com:5349" },
+      { urls: "stun:stun4.l.google.com:19302" },
+      { urls: "stun:stun4.l.google.com:5349" },
     ],
   };
 
   constructor(
     stream: MediaStream,
     onRoomJoinedCallback: (roomAck: RoomAck) => void,
-    setTrack: React.Dispatch<React.SetStateAction<MediaStream[]>>,
+    setRemoteTrack: React.Dispatch<React.SetStateAction<MediaStream[]>>,
+    setRemoteUsers: React.Dispatch<
+      React.SetStateAction<
+        {
+          user: RTCUser;
+          streams: string[];
+        }[]
+      >
+    >,
     config?: Config,
     constraints: Constraints = { audio: true, video: true }
   ) {
@@ -39,7 +61,8 @@ export class RTC {
       withCredentials: true,
     });
     this.stream = stream;
-    this.setTrack = setTrack;
+    this.setRemoteTrack = setRemoteTrack;
+    this.setRemoteUsers = setRemoteUsers;
     this.constraints = constraints;
     this.isPolite = false;
     this.onRoomJoinedCallback = onRoomJoinedCallback;
@@ -87,6 +110,20 @@ export class RTC {
       await this.initRTC();
       this.onRoomJoinedCallback(roomAck);
     });
+
+    // on new streams
+    this.socket.on(
+      SocketEvent.NewStreams,
+      (
+        streamOwners: {
+          user: RTCUser;
+          streams: string[];
+        }[]
+      ) => {
+        console.log({ streamOwners });
+        this.setRemoteUsers((prev) => [...prev, ...streamOwners]);
+      }
+    );
   }
 
   replaceTrack(kind: "audio" | "video", track: MediaStreamTrack) {
@@ -181,7 +218,7 @@ export class RTC {
       // TODO
       console.log("onstream");
       streams.forEach((stream) => {
-        this.setTrack((prev) => {
+        this.setRemoteTrack((prev) => {
           let foundStream = prev.find((s) => s.id === stream.id);
           console.log(stream.id);
           if (!foundStream) {
