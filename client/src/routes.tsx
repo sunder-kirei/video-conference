@@ -12,6 +12,7 @@ const router = createBrowserRouter([
     path: "/",
     element: <RootPage />,
     errorElement: <ErrorPage />,
+    loader: userLoader,
     children: [
       {
         path: "/loading",
@@ -24,7 +25,6 @@ const router = createBrowserRouter([
       { path: "/join/:roomID?", element: <CallPage /> },
       {
         path: "",
-        loader: userLoader,
         element: <HomePage />,
       },
     ],

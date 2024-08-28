@@ -127,11 +127,14 @@ export class RTC {
   }
 
   replaceTrack(kind: "audio" | "video", track: MediaStreamTrack) {
+    console.log("replaceTrack called");
     const sender = this.rtc
       ?.getSenders()
       .find((sender) => kind === sender.track?.kind);
+    console.log(sender);
     if (!sender) {
-      console.log("damn");
+      this.rtc?.addTrack(track, this.stream);
+      return;
     }
 
     sender?.replaceTrack(track);

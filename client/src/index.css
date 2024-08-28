@@ -73,7 +73,7 @@ body {
   @apply h-fit w-full relative;
 }
 
-.video-container:hover .controls-container {
+.video-container:hover .rnd_btn {
   @apply translate-y-0 opacity-100;
 }
 
@@ -85,8 +85,12 @@ body {
   @apply absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-32 z-10 max-h-[50%];
 }
 
+.rnd_btn {
+  @apply custom_transition translate-y-full opacity-0;
+}
+
 .controls-container {
-  @apply absolute bottom-0 flex w-full h-24 p-4 justify-center z-20 gap-x-4 translate-y-full custom_transition opacity-0;
+  @apply absolute bottom-0 flex w-full h-24 p-4 justify-center z-20 gap-x-4;
 }
 
 .home-page {

@@ -62,37 +62,35 @@ export default function StreamVideo({
   const audioEnabled = media.audio.streamEnabled;
 
   return (
-    <div
-      {...props}
-      className={twMerge("video-container overflow-hidden", className)}
-    >
+    <div {...props} className={twMerge("video-container", className)}>
       <AppVideo
         id="source-video"
         srcObject={media.stream}
         autoPlay
+        muted
         playsInline
       />
-      {/* {!videoEnabled && audioEnabled && ( */}
-      <UserBadge
-        user={
-          user && {
-            username: user.username,
-            profilePicture: user.profilePicture,
+      {!videoEnabled && (
+        <UserBadge
+          user={
+            user && {
+              username: user.username,
+              profilePicture: user.profilePicture,
+            }
           }
-        }
-        className="user-badge"
-        noanimation
-      />
-      {/* )} */}
-      <div className="controls-container">
+          className="user-badge"
+          noanimation
+        />
+      )}
+      <div className="controls-container overflow-hidden">
         <RoundedButton
           onClick={() => handleClick("audio")}
           className={
-            media.audio.availableDevices.length && media.audio.hasPermission
+            (media.audio.availableDevices.length && media.audio.hasPermission
               ? audioEnabled
                 ? "rnd_enabled"
                 : "rnd_disabled"
-              : "rnd_no_permission" + " grid place-items-center"
+              : "rnd_no_permission") + " rnd_btn "
           }
         >
           <Mic />
@@ -102,11 +100,11 @@ export default function StreamVideo({
             handleClick("video");
           }}
           className={
-            media.video.hasPermission && media.video.availableDevices.length
+            (media.video.hasPermission && media.video.availableDevices.length
               ? videoEnabled
                 ? "rnd_enabled"
                 : "rnd_disabled"
-              : "rnd_no_permission" + " grid place-items-center"
+              : "rnd_no_permission") + " rnd_btn "
           }
         >
           <Video />

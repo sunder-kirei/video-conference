@@ -19,7 +19,7 @@ function AppVideo({ srcObject, ...props }: Props) {
       ref={refVideo}
       {...props}
       className={twMerge(
-        "aspect-video max-h-full w-full border bg-black object-cover rounded-sm",
+        "aspect-video w-full border bg-black object-cover rounded-sm",
         props.className
       )}
     />

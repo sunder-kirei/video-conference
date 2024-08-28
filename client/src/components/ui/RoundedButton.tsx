@@ -3,15 +3,16 @@ import { twMerge } from "tailwind-merge";
 
 type Props = {};
 
-function RoundedButton(
-  props: PropsWithChildren<React.HTMLAttributes<HTMLDivElement>>
-) {
+function RoundedButton({
+  className,
+  ...props
+}: PropsWithChildren<React.HTMLAttributes<HTMLDivElement>>) {
   return (
     <div
       {...props}
       className={twMerge(
-        "border p-4 w-fit aspect-square rounded-full cursor-pointer custom_transition",
-        props.className
+        "border p-4 w-fit aspect-square rounded-full cursor-pointer custom_transition  grid place-items-center",
+        className
       )}
     />
   );

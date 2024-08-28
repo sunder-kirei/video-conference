@@ -62,7 +62,7 @@ function LoginUserForm(props: HTMLMotionProps<"form">) {
         }}
       />
       <Button type="submit" disabled={!errors.root?.message} className="mt-4">
-        Create Account
+        Login
       </Button>
       <Link
         to={"/login?new=true"}

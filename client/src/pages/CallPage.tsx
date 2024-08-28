@@ -53,37 +53,44 @@ function CallPage({}: Props) {
     });
   }
 
-  // const rtc = useMemo(() => {
-  //   return new RTC(
-  //     media.stream,
-  //     onRoomJoined,
-  //     setRemoteStreams,
-  //     setRemoteUsers
-  //   );
-  // }, []);
+  useEffect(() => {
+    const rtc = new RTC(
+      media.stream,
+      onRoomJoined,
+      setRemoteStreams,
+      setRemoteUsers
+    );
 
-  // useEffect(() => {
-  //   if (roomID) {
-  //     rtc.joinRoom(roomID);
-  //   } else {
-  //     rtc.createRoom();
-  //   }
-  //   dispatch(createRTC(rtc));
-  // }, []);
+    if (roomID) {
+      rtc.joinRoom(roomID);
+    } else {
+      rtc.createRoom();
+    }
+    dispatch(createRTC(rtc));
+  }, []);
 
   return (
     <Page className="flex flex-col">
       <div className="video-grid h-full w-full overflow-y-auto p-4 items-center">
         {remoteStreams.map((stream) => {
+          console.log(stream.getTracks());
           const user = remoteUsers.find(({ streams }) => {
             if (streams.find((sid) => sid === stream.id)) return true;
             return false;
           });
 
+          let isEnabled = false;
+          stream.getVideoTracks().forEach((track) => {
+            console.log(track.enabled);
+            isEnabled = isEnabled || track.enabled;
+          });
+
           return (
             <div className="video-container" key={stream.id}>
               <AppVideo playsInline autoPlay srcObject={stream} />
-              <UserBadge user={user?.user} className="user-badge" />
+              {!isEnabled && (
+                <UserBadge user={user?.user} className="user-badge" />
+              )}
               <span className="user-tag text-white absolute bottom-2 left-4 opacity-0 translate-y-8 custom_transition">
                 {user?.user.username}
               </span>
@@ -99,7 +106,7 @@ function CallPage({}: Props) {
           </span>
         </div> */}
 
-        <StreamVideo className="max-h-full" />
+        <StreamVideo />
       </div>
       <div className="controls h-24 w-full flex items-center justify-center gap-x-4 relative font-semibold">
         <button

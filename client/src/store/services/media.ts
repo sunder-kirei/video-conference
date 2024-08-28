@@ -150,8 +150,9 @@ const slice = createSlice({
 
       const black = createCanvas().captureStream(1);
       black.getVideoTracks()[0].enabled = false;
-      state.rtc?.addTrack(black.getVideoTracks()[0]);
       state.stream.addTrack(black.getVideoTracks()[0]);
+
+      console.log(state.stream.getTracks());
     },
   },
   extraReducers: (builder) => {
