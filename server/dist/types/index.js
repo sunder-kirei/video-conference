@@ -15,7 +15,7 @@ var SocketEvent;
     SocketEvent["ICE"] = "rtc-ICE";
     SocketEvent["Offer"] = "rtc-description";
     SocketEvent["RoomJoinAck"] = "room-joined";
-    SocketEvent["NewStream"] = "new-stream";
+    SocketEvent["NewStreams"] = "new-streams";
     SocketEvent["ToggleTrack"] = "toggle-track";
     /** Auth */
     SocketEvent["InvalidAuth"] = "invalid-auth";
