@@ -1,0 +1,15 @@
+{
+  "name": "video-conference",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "build": "npm run --prefix client build && npm run --prefix server build",
+    "start": "npm run --prefix server start",
+    "dev:react": "npm run --prefix client dev",
+    "dev:server": "npm run --prefix server dev"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": ""
+}
