@@ -69,6 +69,11 @@ function CallPage({}: Props) {
     dispatch(createRTC(rtc));
   }, []);
 
+  async function handleEndCall() {
+    navigate("/");
+    media.rtc?.free();
+  }
+
   return (
     <Page className="flex flex-col">
       <div className="video-grid h-full w-full overflow-y-auto p-4 items-center">
@@ -119,7 +124,11 @@ function CallPage({}: Props) {
           <Copy />
           <span>{location.pathname}</span>
         </button>
-        <RoundedButton className="rnd_danger" title="Hang up">
+        <RoundedButton
+          className="rnd_danger"
+          title="Hang up"
+          onClick={() => handleEndCall()}
+        >
           <PhoneOff />
         </RoundedButton>
         <RoundedButton

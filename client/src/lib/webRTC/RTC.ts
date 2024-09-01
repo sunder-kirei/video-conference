@@ -69,6 +69,11 @@ export class RTC {
     this.setupSignalerListeners();
   }
 
+  free() {
+    this.socket.disconnect();
+    this.rtc?.close();
+  }
+
   private setupSignalerListeners() {
     // on connect
     this.socket.on(SocketEvent.Connect, () => {
@@ -124,20 +129,56 @@ export class RTC {
         this.setRemoteUsers((prev) => [...prev, ...streamOwners]);
       }
     );
+
+    // on removeStream
+    this.socket.on(SocketEvent.RemoveStream, (streamID: string) => {
+      console.log({ streamID });
+      this.setRemoteTrack((prev) =>
+        prev.filter((stream) => stream.id !== streamID)
+      );
+    });
+
+    // on statusToggle
+    this.socket.on(
+      SocketEvent.StreamStatus,
+      (status: { streamID: string; trackID: string; enabled: boolean }[]) => {
+        console.log(status);
+        status.forEach((st) => {
+          this.setRemoteTrack((prev) => {
+            console.log(prev);
+            prev.forEach((s) => {
+              if (s.id === st.streamID && s.getTrackById(st.trackID)) {
+                console.log("stream found to disable");
+                s.getTrackById(st.trackID)!.enabled = st.enabled;
+              }
+            });
+            return [...prev];
+          });
+        });
+      }
+    );
   }
 
   replaceTrack(kind: "audio" | "video", track: MediaStreamTrack) {
     console.log("replaceTrack called");
+    console.log(track.enabled);
     const sender = this.rtc
       ?.getSenders()
       .find((sender) => kind === sender.track?.kind);
     console.log(sender);
     if (!sender) {
-      this.rtc?.addTrack(track, this.stream);
+      this.addTrack(track);
       return;
     }
 
     sender?.replaceTrack(track);
+    this.socket.emit(SocketEvent.StreamStatus, [
+      {
+        streamID: this.stream.id,
+        trackID: track.id,
+        enabled: track.enabled,
+      },
+    ]);
   }
 
   private sendConfig() {
@@ -176,6 +217,13 @@ export class RTC {
     console.log("_addtrack");
     console.log(this.rtc.connectionState);
     this.rtc.addTrack(track, this.stream);
+    this.socket.emit(SocketEvent.StreamStatus, [
+      {
+        streamID: this.stream.id,
+        trackID: track.id,
+        enabled: track.enabled,
+      },
+    ]);
     console.log(this.rtc.getTransceivers());
   }
 

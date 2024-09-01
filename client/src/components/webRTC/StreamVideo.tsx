@@ -14,6 +14,7 @@ import UserBadge from "../ui/UserBadge";
 import { useAppSelector, useAppDispatch } from "../../hooks/redux";
 import { twMerge } from "tailwind-merge";
 import AppVideo from "../ui/AppVideo";
+import { useNavigate } from "react-router-dom";
 
 export default function StreamVideo({
   className,

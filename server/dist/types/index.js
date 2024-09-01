@@ -16,7 +16,8 @@ var SocketEvent;
     SocketEvent["Offer"] = "rtc-description";
     SocketEvent["RoomJoinAck"] = "room-joined";
     SocketEvent["NewStreams"] = "new-streams";
-    SocketEvent["ToggleTrack"] = "toggle-track";
+    SocketEvent["RemoveStream"] = "remove-stream";
+    SocketEvent["StreamStatus"] = "stream-status";
     /** Auth */
     SocketEvent["InvalidAuth"] = "invalid-auth";
 })(SocketEvent || (exports.SocketEvent = SocketEvent = {}));

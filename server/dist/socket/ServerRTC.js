@@ -20,6 +20,7 @@ class ServerRTC {
     constructor(socket, roomID, memDB, config) {
         this.makingOffer = false;
         this.ownedStreams = new Set();
+        this.streamEnabledStatus = [];
         this.config = {
             iceServers: [
                 { urls: "stun:stun.l.google.com:19302" },
@@ -49,9 +50,7 @@ class ServerRTC {
         // remove all senders of this socket from all other clients
         try {
             logger_1.default.error("calling free");
-            Object.entries(this.memDB.rooms[this.roomID]).forEach(([socketID, { rtc, trackEvents }]) => { }
-            // call remove streams and close tranceivers for all peers
-            );
+            this._removeStreams();
             delete this.memDB.rooms[this.roomID][this.socket.id];
             this.socket.disconnect();
             this.rtc.close();
@@ -88,6 +87,7 @@ class ServerRTC {
                         streams: Array.from(streams),
                     });
                 }
+                this.socket.emit(types_1.SocketEvent.StreamStatus, rtc === null || rtc === void 0 ? void 0 : rtc.streamEnabledStatus);
             });
             this.socket.emit(types_1.SocketEvent.NewStreams, streamOwners);
         }
@@ -107,16 +107,36 @@ class ServerRTC {
             logger_1.default.error(err);
         }
     }
+    _removeStreams() {
+        var _a;
+        try {
+            // remove trackEvents from memDB
+            this.memDB.rooms[this.roomID][this.socket.id].trackEvents.clear();
+            // send RemoveStream event to all peers with ownedStream.streamID
+            (_a = this.memDB.rooms[this.roomID][this.socket.id].rtc) === null || _a === void 0 ? void 0 : _a.ownedStreams.forEach((streamID) => {
+                this.socket.to(this.roomID).emit(types_1.SocketEvent.RemoveStream, streamID);
+            });
+            // clear ownedStreams
+            this.ownedStreams.clear();
+        }
+        catch (err) {
+            logger_1.default.error(err);
+        }
+    }
     setupListeners() {
         logger_1.default.info("setupListeners called");
         this.rtc.onconnectionstatechange = () => {
             if (this.rtc.connectionState === "connected") {
                 this._onjoinroom();
             }
+            else if (this.rtc.connectionState === "closed") {
+                // this._removeStreams();
+            }
         };
         // handle incoming remote tracks
         this.rtc.ontrack = (event) => {
             try {
+                logger_1.default.warn(event.streams[0].getTracks().map((track) => track.enabled));
                 // rtpReceiver is automatically added to the rtc
                 // insert trackevent to trackevents to be used on later connections
                 this.memDB.rooms[this.roomID][this.socket.id].trackEvents.set(event.track.id, event);
@@ -212,6 +232,14 @@ class ServerRTC {
             catch (err) {
                 logger_1.default.error(err);
             }
+        });
+        // toggle stream enabled status
+        this.socket.on(types_1.SocketEvent.StreamStatus, (status) => {
+            status.forEach((s) => {
+                const fs = this.streamEnabledStatus.filter((st) => st.streamID !== s.streamID && st.trackID !== s.trackID);
+                this.streamEnabledStatus = [...fs, s];
+            });
+            this.socket.to(this.roomID).emit(types_1.SocketEvent.StreamStatus, status);
         });
     }
 }
