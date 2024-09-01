@@ -28,14 +28,20 @@ import connectToDB from "./lib/connectToDB";
 import { verifyJWT } from "./lib/jwt";
 import userService from "./service/user.service";
 import socket from "./socket";
+import path from "path";
 
 // TODO add entry in DB and use its id
 export const { randomUUID: uid } = new ShortUniqueId({ length: 5 });
 
+const memDB: MemDB = {
+  rooms: {},
+  socketInfo: new Map(),
+};
 dotenv.config();
 
 const PORT = process.env.PORT ?? 3000;
 const app = express();
+
 app.use(
   cors({
     origin: `${process.env.FRONTEND_ORIGIN}`,
@@ -52,12 +58,11 @@ app.use(
 );
 app.use(express.json());
 
-const httpServer = createServer(app);
+const react = path.join("..", "client", "build");
+logger.warn(react);
+app.use(express.static(react));
 
-const memDB: MemDB = {
-  rooms: {},
-  socketInfo: new Map(),
-};
+const httpServer = createServer(app);
 
 const io = new Server(httpServer, {
   cors: {

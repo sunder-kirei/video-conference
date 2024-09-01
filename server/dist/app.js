@@ -27,8 +27,13 @@ const GoogleAuth_1 = require("./lib/GoogleAuth");
 const routes_1 = __importDefault(require("./routes"));
 const connectToDB_1 = __importDefault(require("./lib/connectToDB"));
 const socket_1 = __importDefault(require("./socket"));
+const path_1 = __importDefault(require("path"));
 // TODO add entry in DB and use its id
 exports.uid = new short_unique_id_1.default({ length: 5 }).randomUUID;
+const memDB = {
+    rooms: {},
+    socketInfo: new Map(),
+};
 dotenv_1.default.config();
 const PORT = (_a = process.env.PORT) !== null && _a !== void 0 ? _a : 3000;
 const app = (0, express_1.default)();
@@ -43,11 +48,10 @@ app.use((0, express_session_1.default)({
     saveUninitialized: false,
 }));
 app.use(express_1.default.json());
+const react = path_1.default.join("..", "client", "build");
+logger_1.default.warn(react);
+app.use(express_1.default.static(react));
 const httpServer = (0, http_1.createServer)(app);
-const memDB = {
-    rooms: {},
-    socketInfo: new Map(),
-};
 const io = new socket_io_1.Server(httpServer, {
     cors: {
         credentials: true,
