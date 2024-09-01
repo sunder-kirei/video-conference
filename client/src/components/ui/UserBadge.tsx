@@ -6,6 +6,7 @@ import { twMerge } from "tailwind-merge";
 function UserBadge({
   user,
   noanimation,
+  className,
   ...props
 }: React.HTMLAttributes<HTMLDivElement> & {
   user: RTCUser | undefined | null;
@@ -14,7 +15,7 @@ function UserBadge({
   const profilePicture = user?.profilePicture ?? "/assets/user.png";
 
   return (
-    <div {...props} className={twMerge("relative", props.className)}>
+    <div {...props} className={twMerge("relative", className)}>
       <motion.img
         whileHover={
           noanimation

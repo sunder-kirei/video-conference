@@ -3,9 +3,10 @@ import ErrorPage from "./pages/ErrorPage";
 import LoadingPage from "./pages/LoadingPage";
 import RootPage from "./pages/RootPage";
 import HomePage from "./pages/HomePage";
-import LoginPage from "./pages/LoginPage";
+import AuthPage from "./pages/AuthPage";
 import { userLoader } from "./lib/userLoader";
 import CallPage from "./pages/CallPage";
+import { joinLoader } from "./lib/joinLoader";
 
 const router = createBrowserRouter([
   {
@@ -19,10 +20,10 @@ const router = createBrowserRouter([
         element: <LoadingPage />,
       },
       {
-        path: "/login",
-        element: <LoginPage />,
+        path: "/auth",
+        element: <AuthPage />,
       },
-      { path: "/join/:roomID?", element: <CallPage /> },
+      { path: "/join/:roomID?", element: <CallPage />, loader: joinLoader },
       {
         path: "",
         element: <HomePage />,

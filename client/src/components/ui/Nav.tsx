@@ -5,6 +5,7 @@ import { selectUser } from "../../store/services/user";
 import logger from "../../lib/logger";
 import UserBadge from "./UserBadge";
 import { useNavigate } from "react-router-dom";
+import { selectMedia } from "../../store/services/media";
 
 type Props = {};
 
@@ -24,18 +25,18 @@ function Nav({}: Props) {
           <LoadingIcon noanimation className="h-full aspect-square p-2" />
           Video Conference
         </li>
-        {user ? (
-          <UserBadge
-            user={
-              user && {
-                username: user.username,
-                profilePicture: user.profilePicture,
-              }
+
+        <UserBadge
+          onClick={() => {
+            navigate("/auth");
+          }}
+          user={
+            user && {
+              username: user.username,
+              profilePicture: user.profilePicture,
             }
-          />
-        ) : (
-          <li />
-        )}
+          }
+        />
       </ul>
     </nav>
   );

@@ -13,7 +13,7 @@ import { Toaster } from "react-hot-toast";
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <Provider store={store}>
-    {createPortal(<Toaster position="bottom-right" />, document.body)}
+    {createPortal(<Toaster />, document.body)}
     <RouterProvider router={router} fallbackElement={<LoadingPage />} />
   </Provider>
 );

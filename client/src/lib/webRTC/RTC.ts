@@ -70,7 +70,12 @@ export class RTC {
   }
 
   free() {
+    console.log("Closing connection");
     this.socket.disconnect();
+    this.stream.getTracks().forEach((track) => {
+      track.stop();
+      this.stream.removeTrack(track);
+    });
     this.rtc?.close();
   }
 
@@ -263,6 +268,9 @@ export class RTC {
     if (!this.rtc) throw "RTC not init";
 
     let makingOffer = false;
+
+    this.rtc.onconnectionstatechange = () =>
+      console.log(this.rtc?.connectionState);
 
     // handle incoming remote tracks
     this.rtc.ontrack = ({ streams, track, receiver, transceiver }) => {

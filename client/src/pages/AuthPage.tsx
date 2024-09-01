@@ -46,12 +46,16 @@ const data = [
   },
 ];
 
-function LoginPage({}: Props) {
+function AuthPage({}: Props) {
   const [searchParams, setUserParams] = useSearchParams();
 
   const onSubmit = async () => {
-    window.location.href =
-      "http://localhost:3000/api/auth/google?callback=http://localhost:3001";
+    const url =
+      "http://localhost:3000/api/auth/google?callback=" +
+      window.location.origin +
+      searchParams.get("callback");
+
+    window.location.href = url;
   };
 
   return (
@@ -60,9 +64,15 @@ function LoginPage({}: Props) {
       <main className="flex flex-col h-full justify-center items-center">
         <AnimatePresence mode="wait">
           {searchParams.get("new") ? (
-            <CreateAccountForm key={"create-account"} />
+            <CreateAccountForm
+              key={"create-account"}
+              callback={searchParams.get("callback")}
+            />
           ) : (
-            <LoginUserForm key={"login-account"} />
+            <LoginUserForm
+              key={"login-account"}
+              callback={searchParams.get("callback")}
+            />
           )}
         </AnimatePresence>
         <GoogleAuthButton className="bg-green-400 mt-4" onClick={onSubmit} />
@@ -71,4 +81,4 @@ function LoginPage({}: Props) {
   );
 }
 
-export default LoginPage;
+export default AuthPage;

@@ -1,14 +1,22 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { HTMLMotionProps, motion } from "framer-motion";
 import { useForm } from "react-hook-form";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import logger from "../../lib/logger";
 import authSchema, { LoginUserSchema } from "../../schema/auth.schema";
 import Button from "../ui/Button";
 import Input from "../ui/Input";
 import { twMerge } from "tailwind-merge";
+import {
+  useCreateUserMutation,
+  useLoginMutation,
+} from "../../store/services/auth";
+import toast from "react-hot-toast";
 
-function LoginUserForm(props: HTMLMotionProps<"form">) {
+function LoginUserForm({
+  callback,
+  ...props
+}: HTMLMotionProps<"form"> & { callback: string | null }) {
   const {
     control,
     handleSubmit,
@@ -20,9 +28,22 @@ function LoginUserForm(props: HTMLMotionProps<"form">) {
     resolver: zodResolver(authSchema.loginUserSchema),
   });
 
-  const onSubmit = (data: LoginUserSchema) => {
-    if (errors) logger.info(data);
+  const [login, { isLoading, isError }] = useLoginMutation();
+  const navigate = useNavigate();
+
+  const onSubmit = async ({ email, password }: LoginUserSchema) => {
+    try {
+      await toast.promise(login({ email, password }).unwrap(), {
+        loading: "Authenticating",
+        success: <b>Auth Successful👍</b>,
+        error: <b>Something went wrong😥</b>,
+      });
+      navigate(callback ?? "/");
+    } catch (err) {
+      console.error(err);
+    }
   };
+
   const onTouch = (name: any) => clearErrors(name);
 
   return (
@@ -61,11 +82,11 @@ function LoginUserForm(props: HTMLMotionProps<"form">) {
           type: "password",
         }}
       />
-      <Button type="submit" disabled={!errors.root?.message} className="mt-4">
+      <Button type="submit" className="mt-4">
         Login
       </Button>
       <Link
-        to={"/login?new=true"}
+        to={"/auth?new=true"}
         className="underline text-blue-600 text-center"
       >
         Don't have an account?

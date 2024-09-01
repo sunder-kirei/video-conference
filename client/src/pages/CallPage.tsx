@@ -61,12 +61,15 @@ function CallPage({}: Props) {
       setRemoteUsers
     );
 
+    dispatch(createRTC(rtc));
+
     if (roomID) {
       rtc.joinRoom(roomID);
     } else {
       rtc.createRoom();
     }
-    dispatch(createRTC(rtc));
+
+    return () => rtc.free();
   }, []);
 
   async function handleEndCall() {

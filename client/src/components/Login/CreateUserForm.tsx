@@ -8,8 +8,12 @@ import Button from "../ui/Button";
 import Input from "../ui/Input";
 import { useCreateUserMutation } from "../../store/services/auth";
 import { twMerge } from "tailwind-merge";
+import toast from "react-hot-toast";
 
-function CreateAccountForm(props: HTMLMotionProps<"form">) {
+function CreateAccountForm({
+  callback,
+  ...props
+}: HTMLMotionProps<"form"> & { callback: string | null }) {
   const {
     handleSubmit,
     clearErrors,
@@ -31,16 +35,15 @@ function CreateAccountForm(props: HTMLMotionProps<"form">) {
     passwordConfirmation,
     username,
   }: CreateUserSchema) => {
-    logger.info("Submit called");
-    await createUser({ passwordConfirmation, email, password, username })
-      .unwrap()
-      .then((data) => {
-        navigate("/");
-      })
-      .catch((err) => {
-        logger.error(err);
-        alert(err);
-      });
+    await toast.promise(
+      createUser({ email, password, passwordConfirmation, username }).unwrap(),
+      {
+        loading: "Creating User...",
+        success: <b>Auth Successful👍</b>,
+        error: <b>Something went wrong😥</b>,
+      }
+    );
+    navigate(callback ?? "/");
   };
   const onTouch = (name: any) => clearErrors(name);
 
@@ -93,15 +96,10 @@ function CreateAccountForm(props: HTMLMotionProps<"form">) {
           type: "password",
         }}
       />
-      <Button
-        type="submit"
-        // disabled={!errors.root?.message}
-        className="mt-4"
-        onClick={handleSubmit(onSubmit)}
-      >
+      <Button type="submit" className="mt-4">
         Create Account
       </Button>
-      <Link to={"/login"} className="underline text-blue-600 text-center">
+      <Link to={"/auth"} className="underline text-blue-600 text-center">
         Already have an account?
       </Link>
     </motion.form>
