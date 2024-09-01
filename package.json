@@ -2,6 +2,10 @@
   "name": "video-conference",
   "version": "1.0.0",
   "main": "index.js",
+  "workspaces": [
+    "client",
+    "server"
+  ],
   "scripts": {
     "build": "npm run --prefix client build && npm run --prefix server build",
     "start": "npm run --prefix server start",
@@ -11,5 +15,9 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": ""
+  "description": "",
+  "dependencies": {
+    "@roamhq/wrtc": "^0.8.0",
+    "typescript": "^5.5.4"
+  }
 }
