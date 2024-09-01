@@ -58,7 +58,7 @@ app.use(
 );
 app.use(express.json());
 
-const react = path.join("..", "client", "build");
+const react = path.join("client", "build");
 logger.warn(react);
 app.use(express.static(react));
 
