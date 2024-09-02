@@ -48,9 +48,6 @@ app.use((0, express_session_1.default)({
     saveUninitialized: false,
 }));
 app.use(express_1.default.json());
-const react = path_1.default.join("..", "client", "build");
-logger_1.default.warn(react);
-app.use(express_1.default.static(react));
 const httpServer = (0, http_1.createServer)(app);
 const io = new socket_io_1.Server(httpServer, {
     cors: {
@@ -63,5 +60,11 @@ httpServer.listen(PORT, () => __awaiter(void 0, void 0, void 0, function* () {
     GoogleAuth_1.GoogleAuth.init(process.env.CLIENT_ID, process.env.CLIENT_SECRET, process.env.REDIRECT_URL);
     (0, socket_1.default)(io, memDB);
     (0, routes_1.default)(app);
+    const react = path_1.default.join("client", "build");
+    logger_1.default.warn(react);
+    app.use(express_1.default.static(react));
+    app.get("*", function (req, res) {
+        res.sendFile("index.html", { root: react });
+    });
     logger_1.default.info(`Server listening on http:/localhost:${PORT}`);
 }));

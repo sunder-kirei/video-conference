@@ -58,10 +58,6 @@ app.use(
 );
 app.use(express.json());
 
-const react = path.join("client", "build");
-logger.warn(react);
-app.use(express.static(react));
-
 const httpServer = createServer(app);
 
 const io = new Server(httpServer, {
@@ -80,5 +76,11 @@ httpServer.listen(PORT, async () => {
   );
   socket(io, memDB);
   routes(app);
+  const react = path.join("client", "build");
+  logger.warn(react);
+  app.use(express.static(react));
+  app.get("*", function (req, res) {
+    res.sendFile("index.html", { root: react });
+  });
   logger.info(`Server listening on http:/localhost:${PORT}`);
 });

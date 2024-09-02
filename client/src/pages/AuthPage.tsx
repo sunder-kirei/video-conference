@@ -54,7 +54,7 @@ function AuthPage({}: Props) {
       process.env.REACT_APP_BACKEND +
       "/api/auth/google?callback=" +
       window.location.origin +
-      searchParams.get("callback");
+      (searchParams.get("callback") ?? "");
 
     window.location.href = url;
   };

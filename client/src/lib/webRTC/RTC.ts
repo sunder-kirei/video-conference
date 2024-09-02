@@ -117,7 +117,7 @@ export class RTC {
     // on room joined
     this.socket.on(SocketEvent.RoomJoinAck, async (roomAck: RoomAck) => {
       this.isPolite = roomAck.isPolite;
-      await this.initRTC();
+      await this.connect();
       this.onRoomJoinedCallback(roomAck);
     });
 
@@ -232,7 +232,7 @@ export class RTC {
     console.log(this.rtc.getTransceivers());
   }
 
-  async initRTC() {
+  initRTC() {
     try {
       this.rtc = new RTCPeerConnection({
         ...this.config,
@@ -241,7 +241,6 @@ export class RTC {
       this.stream.getTracks().forEach((track) => {
         this.addTrack(track);
       });
-      await this.connect();
       this.setupListeners();
     } catch (err) {
       throw err;

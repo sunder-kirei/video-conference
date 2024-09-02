@@ -151,6 +151,7 @@ const slice = createSlice({
       const black = createCanvas().captureStream(1);
       black.getVideoTracks()[0].enabled = false;
       state.stream.addTrack(black.getVideoTracks()[0]);
+      state.rtc?.initRTC();
 
       console.log(state.stream.getTracks());
     },
