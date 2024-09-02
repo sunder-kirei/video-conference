@@ -1,9 +1,6 @@
 import { Server } from "socket.io";
-import { verifyJWT } from "../lib/jwt";
-import userService from "../service/user.service";
-import { MemDB, Payload, PublicKey, SocketEvent } from "../types";
+import { MemDB, SocketEvent } from "../types";
 import socketService from "./socket.service";
-import logger from "../lib/logger";
 
 function setup(io: Server, memDB: MemDB) {
   io.use(async (socket, next) => {
@@ -11,8 +8,6 @@ function setup(io: Server, memDB: MemDB) {
   });
 
   io.on("connection", (socket) => {
-    logger.info(socket.id);
-    
     socket.on(SocketEvent.Codecs, (codecs: RTCRtpCodec[]) => {
       socketService.handleCodecs(socket, codecs, memDB);
     });

@@ -1,6 +1,5 @@
-import { Request, Response, NextFunction } from "express";
+import { NextFunction, Request, Response } from "express";
 import { AuthResponse } from "../types";
-import logger from "../lib/logger";
 
 function getUserDetails(
   req: Request,

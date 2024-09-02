@@ -1,34 +1,19 @@
+import cookieParser from "cookie-parser";
 import cors from "cors";
 import dotenv from "dotenv";
-import express, { NextFunction, Request, Response } from "express";
+import express from "express";
+import session from "express-session";
 import { createServer } from "http";
 import ShortUniqueId from "short-unique-id";
 import { Server } from "socket.io";
-import { google, GoogleApis } from "googleapis";
-import crypto from "crypto";
-import session from "express-session";
-import cookieParser from "cookie-parser";
 
-import socketService from "./socket/socket.service";
-import {
-  Codecs,
-  Mapping,
-  MemDB,
-  Payload,
-  PublicKey,
-  RTCUser,
-  Senders,
-  SocketEvent,
-  StreamMapping,
-} from "./types";
-import logger from "./lib/logger";
-import { GoogleAuth } from "./lib/GoogleAuth";
-import routes from "./routes";
-import connectToDB from "./lib/connectToDB";
-import { verifyJWT } from "./lib/jwt";
-import userService from "./service/user.service";
-import socket from "./socket";
 import path from "path";
+import connectToDB from "./lib/connectToDB";
+import { GoogleAuth } from "./lib/GoogleAuth";
+import logger from "./lib/logger";
+import routes from "./routes";
+import socket from "./socket";
+import { MemDB } from "./types";
 
 // TODO add entry in DB and use its id
 export const { randomUUID: uid } = new ShortUniqueId({ length: 5 });
@@ -76,11 +61,12 @@ httpServer.listen(PORT, async () => {
   );
   socket(io, memDB);
   routes(app);
+
   const react = path.join("client", "build");
-  logger.warn(react);
   app.use(express.static(react));
   app.get("*", function (req, res) {
     res.sendFile("index.html", { root: react });
   });
+
   logger.info(`Server listening on http:/localhost:${PORT}`);
 });

@@ -1,14 +1,13 @@
-import { Request, Response, NextFunction } from "express";
+import { NextFunction, Request, Response } from "express";
 import { GoogleAuth } from "../lib/GoogleAuth";
+import authService from "../service/auth.service";
+import userService from "../service/user.service";
 import {
-  AuthResponse,
   CreateUserSchema,
   GoogleAuthRequest,
   GoogleAuthResponse,
   LoginUserSchema,
 } from "../types";
-import userService from "../service/user.service";
-import authService from "../service/auth.service";
 
 function googleAuthInit(
   req: Request<{}, {}, {}, GoogleAuthRequest["query"]>,

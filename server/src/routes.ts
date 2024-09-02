@@ -1,18 +1,12 @@
-import {
-  Express,
-  Request,
-  Response,
-  NextFunction,
-  ErrorRequestHandler,
-} from "express";
+import { Express, NextFunction, Request, Response } from "express";
 
 import authController from "./controller/auth.controller";
 import userController from "./controller/user.controller";
-import authSchema from "./schema/auth.schema";
-import userSchema from "./schema/user.schema";
-import validate from "./middleware/validate";
 import logger from "./lib/logger";
 import { deserializeUser } from "./middleware/deserializeUser";
+import validate from "./middleware/validate";
+import authSchema from "./schema/auth.schema";
+import userSchema from "./schema/user.schema";
 
 function routes(app: Express) {
   app.get(

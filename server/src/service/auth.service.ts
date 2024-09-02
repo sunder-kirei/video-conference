@@ -1,17 +1,14 @@
+import { Request, Response } from "express";
 import { GoogleAuth } from "../lib/GoogleAuth";
 import { signJWT, verifyJWT } from "../lib/jwt";
-import UserModel, { UserInput } from "../model/user.model";
 import {
-  AuthResponse,
   GoogleAuthResponse,
   LoginUserSchema,
   Payload,
   PrivateKey,
   PublicKey,
 } from "../types";
-import { Request, Response } from "express";
 import userService from "./user.service";
-import { Auth } from "googleapis";
 
 function attachCookies(
   res: Response,

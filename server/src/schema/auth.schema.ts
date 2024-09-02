@@ -1,4 +1,3 @@
-import { query } from "express";
 import { z } from "zod";
 
 const loginUserSchema = z.object({

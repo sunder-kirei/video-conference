@@ -1,6 +1,5 @@
 import jwt from "jsonwebtoken";
-import logger from "./logger";
-import { Payload, PrivateKey, PublicKey, VerifyJWT } from "../types";
+import { PrivateKey, PublicKey, VerifyJWT } from "../types";
 
 export function signJWT(payload: any, keyType: PrivateKey) {
   const key = process.env[keyType]!;

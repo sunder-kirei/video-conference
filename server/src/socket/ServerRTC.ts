@@ -1,17 +1,8 @@
 import wrtc from "@roamhq/wrtc";
 import { Socket } from "socket.io";
 
-import {
-  Mapping,
-  SocketEvent,
-  Config,
-  StreamMapping,
-  Codecs,
-  Senders,
-  MemDB,
-  RTCUser,
-} from "../types";
 import logger from "../lib/logger";
+import { Config, MemDB, RTCUser, SocketEvent } from "../types";
 
 export class ServerRTC {
   rtc: wrtc.RTCPeerConnection;
@@ -41,7 +32,6 @@ export class ServerRTC {
   };
 
   constructor(socket: Socket, roomID: string, memDB: MemDB, config?: Config) {
-    logger.info("RTC constructor called");
     if (config) this.config = config;
     this.rtc = new wrtc.RTCPeerConnection({
       ...this.config,
@@ -61,8 +51,6 @@ export class ServerRTC {
   free() {
     // remove all senders of this socket from all other clients
     try {
-      logger.error("calling free");
-
       this._removeStreams();
 
       delete this.memDB.rooms[this.roomID][this.socket.id];
@@ -75,7 +63,6 @@ export class ServerRTC {
 
   private init() {
     try {
-      logger.info("init method called");
       this.socket.join(this.roomID);
 
       // all other properties will be init on socket pconnection
@@ -87,7 +74,6 @@ export class ServerRTC {
 
   private _onjoinroom() {
     try {
-      logger.info("_onjoinroom called");
       // _addtrack for each event in trackEvents of each peer
       const streamOwners = [] as { user?: RTCUser; streams: string[] }[];
 
@@ -115,9 +101,7 @@ export class ServerRTC {
 
   private _addtrack(event: RTCTrackEvent, rtc: ServerRTC) {
     try {
-      logger.info("_addtrack called");
       event.streams.forEach((stream) => {
-        logger.info(event.track.enabled);
         rtc.rtc.addTrack(event.track, stream);
       });
     } catch (err) {
@@ -145,7 +129,6 @@ export class ServerRTC {
   }
 
   private setupListeners() {
-    logger.info("setupListeners called");
     this.rtc.onconnectionstatechange = () => {
       if (this.rtc.connectionState === "connected") {
         this._onjoinroom();
@@ -157,7 +140,6 @@ export class ServerRTC {
     // handle incoming remote tracks
     this.rtc.ontrack = (event) => {
       try {
-        logger.warn(event.streams[0].getTracks().map((track) => track.enabled));
         // rtpReceiver is automatically added to the rtc
         // insert trackevent to trackevents to be used on later connections
         this.memDB.rooms[this.roomID][this.socket.id].trackEvents.set(
@@ -219,7 +201,6 @@ export class ServerRTC {
   }
 
   private setupSocketListeners() {
-    logger.info("setupSocketListeners called");
     this.socket.on(
       SocketEvent.Offer,
       async (offer: wrtc.RTCSessionDescription) => {

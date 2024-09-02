@@ -1,6 +1,6 @@
-import mongoose, { mongo } from "mongoose";
 import bcrypt from "bcrypt";
 import config from "config";
+import mongoose from "mongoose";
 
 export interface UserInput {
   email: string;

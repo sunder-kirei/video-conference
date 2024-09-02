@@ -1,13 +1,11 @@
-import { google, GoogleApis } from "googleapis";
-import crypto from "crypto";
-import { Session } from "express-session";
 import { Request, Response } from "express";
+import { google } from "googleapis";
 import {
-  OAuth2Client,
   Credentials,
   GoogleAuthProfile,
-  GoogleAuthResponse,
   GoogleAuthRequest,
+  GoogleAuthResponse,
+  OAuth2Client,
 } from "../types";
 import logger from "./logger";
 

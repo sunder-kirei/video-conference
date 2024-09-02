@@ -1,22 +1,13 @@
-import { Socket } from "socket.io";
 import cookie from "cookie";
+import { Socket } from "socket.io";
 
-import {
-  Codecs,
-  Mapping,
-  MemDB,
-  Payload,
-  PublicKey,
-  Senders,
-  SocketEvent,
-  StreamMapping,
-} from "../types";
-import { uid } from "../app";
-import { ServerRTC } from "./ServerRTC";
 import { ExtendedError } from "socket.io/dist/namespace";
+import { uid } from "../app";
 import { verifyJWT } from "../lib/jwt";
-import userService from "../service/user.service";
 import logger from "../lib/logger";
+import userService from "../service/user.service";
+import { MemDB, Payload, PublicKey, SocketEvent } from "../types";
+import { ServerRTC } from "./ServerRTC";
 
 function sendACK(socket: Socket, roomID: string, isPolite: boolean) {
   socket.emit(SocketEvent.RoomJoinAck, {

@@ -1,9 +1,8 @@
-import { Request, Response, NextFunction } from "express";
+import { NextFunction, Request, Response } from "express";
 import { verifyJWT } from "../lib/jwt";
-import { Payload, PublicKey } from "../types";
-import userService from "../service/user.service";
 import authService from "../service/auth.service";
-import logger from "../lib/logger";
+import userService from "../service/user.service";
+import { Payload, PublicKey } from "../types";
 
 export async function deserializeUser(
   req: Request,
