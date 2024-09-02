@@ -23,7 +23,7 @@ export default function GoogleAuthButton(props: HTMLMotionProps<"button">) {
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 48 48"
             xmlnsXlink="http://www.w3.org/1999/xlink"
-            style={{ display: "block" }}
+            className="block"
           >
             <path
               fill="#EA4335"
@@ -47,7 +47,6 @@ export default function GoogleAuthButton(props: HTMLMotionProps<"button">) {
         <span className="gsi-material-button-contents">
           Continue with Google
         </span>
-        <span style={{ display: "none" }}>Continue with Google</span>
       </div>
     </motion.button>
   );
