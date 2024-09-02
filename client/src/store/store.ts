@@ -1,7 +1,7 @@
 import { configureStore } from "@reduxjs/toolkit";
 import { api as authApi } from "./services/auth";
-import userReducer, { api as userApi } from "./services/user";
 import mediaReducer from "./services/media";
+import userReducer, { api as userApi } from "./services/user";
 
 const store = configureStore({
   reducer: {

@@ -1,11 +1,5 @@
-import React, { useEffect, useMemo, useState } from "react";
-import {
-  AnimatePresence,
-  motion,
-  useAnimate,
-  useAnimationControls,
-  Variants,
-} from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
+import { useEffect, useState } from "react";
 import { twMerge } from "tailwind-merge";
 
 type Props = {

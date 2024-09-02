@@ -1,8 +1,6 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { createSlice } from "@reduxjs/toolkit";
 
-import { CreateAccount, AuthResponse, LoginUser, RootState } from "../../types";
-import logger from "../../lib/logger";
+import { CreateAccount, LoginUser } from "../../types";
 
 export const api = createApi({
   reducerPath: "authApi",

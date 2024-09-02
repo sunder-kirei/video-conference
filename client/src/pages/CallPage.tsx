@@ -1,16 +1,16 @@
-import React, { useEffect, useMemo, useState } from "react";
-import Page from "../components/ui/Page";
+import { Copy, PhoneOff, Volume2, VolumeX } from "lucide-react";
+import { useEffect, useState } from "react";
+import toast from "react-hot-toast";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-import { RTC } from "../lib/webRTC/RTC";
+import AppVideo from "../components/ui/AppVideo";
+import Page from "../components/ui/Page";
+import RoundedButton from "../components/ui/RoundedButton";
+import UserBadge from "../components/ui/UserBadge";
+import StreamVideo from "../components/webRTC/StreamVideo";
 import { useAppDispatch, useAppSelector } from "../hooks/redux";
+import { RTC } from "../lib/webRTC/RTC";
 import { createRTC, selectMedia } from "../store/services/media";
 import { RoomAck, RTCUser } from "../types";
-import StreamVideo from "../components/webRTC/StreamVideo";
-import AppVideo from "../components/ui/AppVideo";
-import RoundedButton from "../components/ui/RoundedButton";
-import { Copy, PhoneOff, Volume2, VolumeX } from "lucide-react";
-import toast from "react-hot-toast";
-import UserBadge from "../components/ui/UserBadge";
 
 type Props = {};
 
@@ -81,7 +81,6 @@ function CallPage({}: Props) {
     <Page className="flex flex-col">
       <div className="video-grid h-full w-full overflow-y-auto p-4 items-center">
         {remoteStreams.map((stream) => {
-          console.log(stream.getTracks());
           const user = remoteUsers.find(({ streams }) => {
             if (streams.find((sid) => sid === stream.id)) return true;
             return false;
@@ -89,7 +88,6 @@ function CallPage({}: Props) {
 
           let isEnabled = false;
           stream.getVideoTracks().forEach((track) => {
-            console.log(track.enabled);
             isEnabled = isEnabled || track.enabled;
           });
 
@@ -105,15 +103,6 @@ function CallPage({}: Props) {
             </div>
           );
         })}
-        {/* test user for css */}
-        {/* <div className="video-container">
-          <AppVideo playsInline autoPlay />
-          <UserBadge user={null} className="user-badge" />
-          <span className="user-tag text-white absolute bottom-2 left-4 opacity-0 translate-y-8 custom_transition">
-            {}
-          </span>
-        </div> */}
-
         <StreamVideo />
       </div>
       <div className="controls h-24 w-full flex items-center justify-center gap-x-4 relative font-semibold">
@@ -142,18 +131,6 @@ function CallPage({}: Props) {
           {isMuted ? <VolumeX /> : <Volume2 />}
         </RoundedButton>
       </div>
-
-      {/* <button
-        onClick={() => {
-          console.log("remoteStreams");
-          // remoteStreams.forEach((stream) => console.log(stream.id));
-          console.log(rtc.rtc?.getTransceivers());
-          console.log("remoteUser");
-          console.log({ remoteUsers });
-        }}
-      >
-        click me
-      </button> */}
     </Page>
   );
 }

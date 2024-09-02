@@ -1,21 +1,10 @@
-import React, { LegacyRef, useEffect, useMemo, useRef, useState } from "react";
-import logger from "../lib/logger";
-import { io } from "socket.io-client";
-import GoogleAuthButton from "../components/GoogleAuthButton/GoogleAuthButton";
-import { api, selectUser } from "../store/services/user";
-import store from "../store/store";
-import { redirect, useLoaderData, useNavigate } from "react-router-dom";
-import { RoomAck, User } from "../types";
-import Page from "../components/ui/Page";
-import { useAppDispatch, useAppSelector } from "../hooks/redux";
-import { Video, Mic, BadgePlus, Plus } from "lucide-react";
-import AppVideo from "../components/webRTC/StreamVideo";
-import RoundedButton from "../components/ui/RoundedButton";
-import mediaReducers, { selectMedia } from "../store/services/media";
-import UserBadge from "../components/ui/UserBadge";
-import StreamVideo from "../components/webRTC/StreamVideo";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Button from "../components/ui/Button";
-import { RTC } from "../lib/webRTC/RTC";
+import Page from "../components/ui/Page";
+import StreamVideo from "../components/webRTC/StreamVideo";
+import { useAppSelector } from "../hooks/redux";
+import { selectMedia } from "../store/services/media";
 
 type Props = {};
 

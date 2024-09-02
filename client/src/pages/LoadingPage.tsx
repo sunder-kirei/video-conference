@@ -1,6 +1,4 @@
-import React from "react";
 import LoadingIcon from "../components/Loading/LoadingIcon";
-import { AnimatePresence, motion } from "framer-motion";
 import Page from "../components/ui/Page";
 
 type Props = {};

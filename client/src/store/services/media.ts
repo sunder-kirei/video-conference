@@ -1,14 +1,6 @@
-import {
-  createAsyncThunk,
-  createReducer,
-  createSlice,
-  PayloadAction,
-} from "@reduxjs/toolkit";
-import { createApi } from "@reduxjs/toolkit/query";
+import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import { fetchDevices, fetchPermissions } from "../../lib/media";
 import { MediaInfo, MediaState, RootState } from "../../types";
-import logger from "../../lib/logger";
-import { fetchPermissions, fetchDevices } from "../../lib/media";
-import { RTC } from "../../lib/webRTC/RTC";
 
 export const initThunk = createAsyncThunk("init", async (_, thunkApi) => {
   // will only handle init now
@@ -152,8 +144,6 @@ const slice = createSlice({
       black.getVideoTracks()[0].enabled = false;
       state.stream.addTrack(black.getVideoTracks()[0]);
       state.rtc?.initRTC();
-
-      console.log(state.stream.getTracks());
     },
   },
   extraReducers: (builder) => {
@@ -219,7 +209,6 @@ const slice = createSlice({
       if (state[meta.arg].enabled) {
         // remove tracks
         const tracks = payload as MediaStreamTrack[];
-        console.log(tracks);
         tracks.forEach((track) => {
           // track.enabled = !track.enabled;
           state[meta.arg].streamEnabled = !state[meta.arg].streamEnabled;
@@ -243,7 +232,6 @@ const slice = createSlice({
             state.rtc?.replaceTrack(meta.arg, track);
           }
         });
-        console.log(state.stream.getTracks());
       }
     });
   },

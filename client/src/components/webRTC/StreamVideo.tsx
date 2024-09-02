@@ -1,20 +1,19 @@
 import { Mic, Video } from "lucide-react";
-import { VideoHTMLAttributes, useEffect, useMemo, useRef } from "react";
+import { useEffect } from "react";
+import { twMerge } from "tailwind-merge";
+import { useAppDispatch, useAppSelector } from "../../hooks/redux";
 import {
-  initThunk,
-  selectMedia,
   addTrack,
   handleDeviceChange,
   handlePermissionChange,
+  initThunk,
+  selectMedia,
   toggleTracks,
 } from "../../store/services/media";
-import user, { selectUser } from "../../store/services/user";
+import { selectUser } from "../../store/services/user";
+import AppVideo from "../ui/AppVideo";
 import RoundedButton from "../ui/RoundedButton";
 import UserBadge from "../ui/UserBadge";
-import { useAppSelector, useAppDispatch } from "../../hooks/redux";
-import { twMerge } from "tailwind-merge";
-import AppVideo from "../ui/AppVideo";
-import { useNavigate } from "react-router-dom";
 
 export default function StreamVideo({
   className,

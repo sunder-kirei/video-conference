@@ -1,12 +1,12 @@
 import { createBrowserRouter } from "react-router-dom";
+import { joinLoader } from "./lib/joinLoader";
+import { userLoader } from "./lib/userLoader";
+import AuthPage from "./pages/AuthPage";
+import CallPage from "./pages/CallPage";
 import ErrorPage from "./pages/ErrorPage";
+import HomePage from "./pages/HomePage";
 import LoadingPage from "./pages/LoadingPage";
 import RootPage from "./pages/RootPage";
-import HomePage from "./pages/HomePage";
-import AuthPage from "./pages/AuthPage";
-import { userLoader } from "./lib/userLoader";
-import CallPage from "./pages/CallPage";
-import { joinLoader } from "./lib/joinLoader";
 
 const router = createBrowserRouter([
   {

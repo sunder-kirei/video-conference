@@ -1,11 +1,8 @@
-import React from "react";
-import LoadingIcon from "../Loading/LoadingIcon";
+import { useNavigate } from "react-router-dom";
 import { useAppSelector } from "../../hooks/redux";
 import { selectUser } from "../../store/services/user";
-import logger from "../../lib/logger";
+import LoadingIcon from "../Loading/LoadingIcon";
 import UserBadge from "./UserBadge";
-import { useNavigate } from "react-router-dom";
-import { selectMedia } from "../../store/services/media";
 
 type Props = {};
 

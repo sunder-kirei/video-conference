@@ -1,7 +1,7 @@
-import React from "react";
-import { RTCUser, User } from "../../types";
 import { motion } from "framer-motion";
+import React from "react";
 import { twMerge } from "tailwind-merge";
+import { RTCUser } from "../../types";
 
 function UserBadge({
   user,

@@ -6,7 +6,6 @@ import {
   RTCUser,
   SocketEvent,
 } from "../../types";
-import logger from "../logger";
 
 export class RTC {
   rtc?: RTCPeerConnection;
@@ -70,7 +69,6 @@ export class RTC {
   }
 
   free() {
-    console.log("Closing connection");
     this.socket.disconnect();
     this.stream.getTracks().forEach((track) => {
       track.stop();
@@ -130,14 +128,12 @@ export class RTC {
           streams: string[];
         }[]
       ) => {
-        console.log({ streamOwners });
         this.setRemoteUsers((prev) => [...prev, ...streamOwners]);
       }
     );
 
     // on removeStream
     this.socket.on(SocketEvent.RemoveStream, (streamID: string) => {
-      console.log({ streamID });
       this.setRemoteTrack((prev) =>
         prev.filter((stream) => stream.id !== streamID)
       );
@@ -147,13 +143,10 @@ export class RTC {
     this.socket.on(
       SocketEvent.StreamStatus,
       (status: { streamID: string; trackID: string; enabled: boolean }[]) => {
-        console.log(status);
         status.forEach((st) => {
           this.setRemoteTrack((prev) => {
-            console.log(prev);
             prev.forEach((s) => {
               if (s.id === st.streamID && s.getTrackById(st.trackID)) {
-                console.log("stream found to disable");
                 s.getTrackById(st.trackID)!.enabled = st.enabled;
               }
             });
@@ -165,12 +158,10 @@ export class RTC {
   }
 
   replaceTrack(kind: "audio" | "video", track: MediaStreamTrack) {
-    console.log("replaceTrack called");
-    console.log(track.enabled);
     const sender = this.rtc
       ?.getSenders()
       .find((sender) => kind === sender.track?.kind);
-    console.log(sender);
+
     if (!sender) {
       this.addTrack(track);
       return;
@@ -219,8 +210,6 @@ export class RTC {
   addTrack(track: MediaStreamTrack) {
     if (!this.rtc) throw "RTC not init";
 
-    console.log("_addtrack");
-    console.log(this.rtc.connectionState);
     this.rtc.addTrack(track, this.stream);
     this.socket.emit(SocketEvent.StreamStatus, [
       {
@@ -229,7 +218,6 @@ export class RTC {
         enabled: track.enabled,
       },
     ]);
-    console.log(this.rtc.getTransceivers());
   }
 
   initRTC() {
@@ -269,16 +257,14 @@ export class RTC {
     let makingOffer = false;
 
     this.rtc.onconnectionstatechange = () =>
-      console.log(this.rtc?.connectionState);
+      console.log({ connectionState: this.rtc?.connectionState });
 
     // handle incoming remote tracks
     this.rtc.ontrack = ({ streams, track, receiver, transceiver }) => {
       // TODO
-      console.log("onstream");
       streams.forEach((stream) => {
         this.setRemoteTrack((prev) => {
           let foundStream = prev.find((s) => s.id === stream.id);
-          console.log(stream.id);
           if (!foundStream) {
             foundStream = stream;
           }
@@ -290,16 +276,7 @@ export class RTC {
 
     //handle offer
     this.rtc.onnegotiationneeded = async () => {
-      console.log("negotiation needed");
       await this.connect();
-    };
-
-    // handle connection restart
-    this.rtc.oniceconnectionstatechange = () => {
-      console.log(this.rtc?.connectionState);
-      if (this.rtc!.iceConnectionState === "failed") {
-        // this.rtc!.restartIce();
-      }
     };
 
     // handle ICE candidates

@@ -1,6 +1,5 @@
-import React from "react";
-import { twMerge } from "tailwind-merge";
 import { HTMLMotionProps, motion } from "framer-motion";
+import { twMerge } from "tailwind-merge";
 
 import "./style.css";
 

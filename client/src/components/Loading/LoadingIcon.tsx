@@ -1,5 +1,4 @@
-import React from "react";
-import { animate, HTMLMotionProps, motion, useAnimate } from "framer-motion";
+import { HTMLMotionProps, motion } from "framer-motion";
 import { twMerge } from "tailwind-merge";
 
 const variants = {

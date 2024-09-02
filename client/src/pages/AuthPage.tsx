@@ -1,26 +1,9 @@
-import React, { useEffect } from "react";
-import Carousel from "../components/ui/Carousel";
-import {
-  FieldValue,
-  FieldValues,
-  useController,
-  UseControllerProps,
-  useForm,
-  UseFormRegisterReturn,
-} from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import authSchema, {
-  CreateUserSchema,
-  LoginUserSchema,
-} from "../schema/auth.schema";
-import logger from "../lib/logger";
-import { twMerge } from "tailwind-merge";
-import { AnimatePresence, motion } from "framer-motion";
-import Button from "../components/ui/Button";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { AnimatePresence } from "framer-motion";
+import { useSearchParams } from "react-router-dom";
+import GoogleAuthButton from "../components/GoogleAuthButton/GoogleAuthButton";
 import CreateAccountForm from "../components/Login/CreateUserForm";
 import LoginUserForm from "../components/Login/LoginUserForm";
-import GoogleAuthButton from "../components/GoogleAuthButton/GoogleAuthButton";
+import Carousel from "../components/ui/Carousel";
 import Page from "../components/ui/Page";
 
 type Props = {};

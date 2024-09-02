@@ -1,6 +1,6 @@
+import { createSlice } from "@reduxjs/toolkit";
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query";
 import { RootState, User, UserState } from "../../types";
-import { createSlice } from "@reduxjs/toolkit";
 
 export const api = createApi({
   reducerPath: "userApi",

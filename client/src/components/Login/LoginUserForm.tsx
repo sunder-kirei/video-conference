@@ -1,17 +1,13 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { HTMLMotionProps, motion } from "framer-motion";
 import { useForm } from "react-hook-form";
+import toast from "react-hot-toast";
 import { Link, useNavigate } from "react-router-dom";
-import logger from "../../lib/logger";
+import { twMerge } from "tailwind-merge";
 import authSchema, { LoginUserSchema } from "../../schema/auth.schema";
+import { useLoginMutation } from "../../store/services/auth";
 import Button from "../ui/Button";
 import Input from "../ui/Input";
-import { twMerge } from "tailwind-merge";
-import {
-  useCreateUserMutation,
-  useLoginMutation,
-} from "../../store/services/auth";
-import toast from "react-hot-toast";
 
 function LoginUserForm({
   callback,
