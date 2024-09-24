@@ -14,8 +14,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ServerRTC = void 0;
 const wrtc_1 = __importDefault(require("@roamhq/wrtc"));
-const types_1 = require("../types");
 const logger_1 = __importDefault(require("../lib/logger"));
+const types_1 = require("../types");
 class ServerRTC {
     constructor(socket, roomID, memDB, config) {
         this.makingOffer = false;
@@ -35,7 +35,6 @@ class ServerRTC {
                 { urls: "stun:stun4.l.google.com:5349" },
             ],
         };
-        logger_1.default.info("RTC constructor called");
         if (config)
             this.config = config;
         this.rtc = new wrtc_1.default.RTCPeerConnection(Object.assign(Object.assign({}, this.config), { iceCandidatePoolSize: 64 }));
@@ -49,7 +48,6 @@ class ServerRTC {
     free() {
         // remove all senders of this socket from all other clients
         try {
-            logger_1.default.error("calling free");
             this._removeStreams();
             delete this.memDB.rooms[this.roomID][this.socket.id];
             this.socket.disconnect();
@@ -61,7 +59,6 @@ class ServerRTC {
     }
     init() {
         try {
-            logger_1.default.info("init method called");
             this.socket.join(this.roomID);
             // all other properties will be init on socket pconnection
             this.memDB.rooms[this.roomID][this.socket.id].rtc = this;
@@ -72,7 +69,6 @@ class ServerRTC {
     }
     _onjoinroom() {
         try {
-            logger_1.default.info("_onjoinroom called");
             // _addtrack for each event in trackEvents of each peer
             const streamOwners = [];
             Object.entries(this.memDB.rooms[this.roomID]).forEach(([socketID, { trackEvents, rtc }]) => {
@@ -97,9 +93,7 @@ class ServerRTC {
     }
     _addtrack(event, rtc) {
         try {
-            logger_1.default.info("_addtrack called");
             event.streams.forEach((stream) => {
-                logger_1.default.info(event.track.enabled);
                 rtc.rtc.addTrack(event.track, stream);
             });
         }
@@ -124,7 +118,6 @@ class ServerRTC {
         }
     }
     setupListeners() {
-        logger_1.default.info("setupListeners called");
         this.rtc.onconnectionstatechange = () => {
             if (this.rtc.connectionState === "connected") {
                 this._onjoinroom();
@@ -136,7 +129,6 @@ class ServerRTC {
         // handle incoming remote tracks
         this.rtc.ontrack = (event) => {
             try {
-                logger_1.default.warn(event.streams[0].getTracks().map((track) => track.enabled));
                 // rtpReceiver is automatically added to the rtc
                 // insert trackevent to trackevents to be used on later connections
                 this.memDB.rooms[this.roomID][this.socket.id].trackEvents.set(event.track.id, event);
@@ -194,7 +186,6 @@ class ServerRTC {
         };
     }
     setupSocketListeners() {
-        logger_1.default.info("setupSocketListeners called");
         this.socket.on(types_1.SocketEvent.Offer, (offer) => __awaiter(this, void 0, void 0, function* () {
             try {
                 const offerCollision = offer.type === "offer" &&

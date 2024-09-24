@@ -5,11 +5,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const auth_controller_1 = __importDefault(require("./controller/auth.controller"));
 const user_controller_1 = __importDefault(require("./controller/user.controller"));
-const auth_schema_1 = __importDefault(require("./schema/auth.schema"));
-const user_schema_1 = __importDefault(require("./schema/user.schema"));
-const validate_1 = __importDefault(require("./middleware/validate"));
 const logger_1 = __importDefault(require("./lib/logger"));
 const deserializeUser_1 = require("./middleware/deserializeUser");
+const validate_1 = __importDefault(require("./middleware/validate"));
+const auth_schema_1 = __importDefault(require("./schema/auth.schema"));
+const user_schema_1 = __importDefault(require("./schema/user.schema"));
 function routes(app) {
     app.get("/api/auth/google/oauth2callback", (0, validate_1.default)(auth_schema_1.default.googleAuthResponse), auth_controller_1.default.googleAuthCallback);
     app.get("/api/auth/google", (0, validate_1.default)(auth_schema_1.default.googleAuthRequest), auth_controller_1.default.googleAuthInit);

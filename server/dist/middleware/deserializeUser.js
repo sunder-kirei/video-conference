@@ -14,9 +14,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.deserializeUser = deserializeUser;
 const jwt_1 = require("../lib/jwt");
-const types_1 = require("../types");
-const user_service_1 = __importDefault(require("../service/user.service"));
 const auth_service_1 = __importDefault(require("../service/auth.service"));
+const user_service_1 = __importDefault(require("../service/user.service"));
+const types_1 = require("../types");
 function deserializeUser(req, res, next) {
     return __awaiter(this, void 0, void 0, function* () {
         const accessToken = req.cookies.access_token;

@@ -13,8 +13,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const GoogleAuth_1 = require("../lib/GoogleAuth");
-const user_service_1 = __importDefault(require("../service/user.service"));
 const auth_service_1 = __importDefault(require("../service/auth.service"));
+const user_service_1 = __importDefault(require("../service/user.service"));
 function googleAuthInit(req, res, next) {
     GoogleAuth_1.GoogleAuth.Instance.auth(req, res);
 }

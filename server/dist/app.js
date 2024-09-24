@@ -14,20 +14,20 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 var _a;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.uid = void 0;
+const cookie_parser_1 = __importDefault(require("cookie-parser"));
 const cors_1 = __importDefault(require("cors"));
 const dotenv_1 = __importDefault(require("dotenv"));
 const express_1 = __importDefault(require("express"));
+const express_session_1 = __importDefault(require("express-session"));
 const http_1 = require("http");
 const short_unique_id_1 = __importDefault(require("short-unique-id"));
 const socket_io_1 = require("socket.io");
-const express_session_1 = __importDefault(require("express-session"));
-const cookie_parser_1 = __importDefault(require("cookie-parser"));
-const logger_1 = __importDefault(require("./lib/logger"));
-const GoogleAuth_1 = require("./lib/GoogleAuth");
-const routes_1 = __importDefault(require("./routes"));
-const connectToDB_1 = __importDefault(require("./lib/connectToDB"));
-const socket_1 = __importDefault(require("./socket"));
 const path_1 = __importDefault(require("path"));
+const connectToDB_1 = __importDefault(require("./lib/connectToDB"));
+const GoogleAuth_1 = require("./lib/GoogleAuth");
+const logger_1 = __importDefault(require("./lib/logger"));
+const routes_1 = __importDefault(require("./routes"));
+const socket_1 = __importDefault(require("./socket"));
 // TODO add entry in DB and use its id
 exports.uid = new short_unique_id_1.default({ length: 5 }).randomUUID;
 const memDB = {
@@ -61,7 +61,6 @@ httpServer.listen(PORT, () => __awaiter(void 0, void 0, void 0, function* () {
     (0, socket_1.default)(io, memDB);
     (0, routes_1.default)(app);
     const react = path_1.default.join("client", "build");
-    logger_1.default.warn(react);
     app.use(express_1.default.static(react));
     app.get("*", function (req, res) {
         res.sendFile("index.html", { root: react });

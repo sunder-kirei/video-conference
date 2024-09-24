@@ -34,7 +34,6 @@ function AuthPage({}: Props) {
 
   const onSubmit = async () => {
     const url =
-      process.env.REACT_APP_BACKEND +
       "/api/auth/google?callback=" +
       window.location.origin +
       (searchParams.get("callback") ?? "");

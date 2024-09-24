@@ -5,7 +5,7 @@ import { RootState, User, UserState } from "../../types";
 export const api = createApi({
   reducerPath: "userApi",
   baseQuery: fetchBaseQuery({
-    baseUrl: process.env.REACT_APP_BACKEND + "/api/user",
+    baseUrl: "/api/user",
     credentials: "include",
   }),
   endpoints: ({ query, mutation }) => {

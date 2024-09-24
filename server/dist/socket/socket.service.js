@@ -13,12 +13,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const cookie_1 = __importDefault(require("cookie"));
-const types_1 = require("../types");
 const app_1 = require("../app");
-const ServerRTC_1 = require("./ServerRTC");
 const jwt_1 = require("../lib/jwt");
-const user_service_1 = __importDefault(require("../service/user.service"));
 const logger_1 = __importDefault(require("../lib/logger"));
+const user_service_1 = __importDefault(require("../service/user.service"));
+const types_1 = require("../types");
+const ServerRTC_1 = require("./ServerRTC");
 function sendACK(socket, roomID, isPolite) {
     socket.emit(types_1.SocketEvent.RoomJoinAck, {
         message: `${socket.id} joined room successfully`,
