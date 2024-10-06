@@ -50,7 +50,7 @@ function Carousel({ className, images, data }: Props) {
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setSelectedIdx(([idx, _]) => [(idx + 1) % images.length, 1]);
+      setSelectedIdx(([idx]) => [(idx + 1) % images.length, 1]);
     }, 3000);
 
     return () => {

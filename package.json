@@ -9,8 +9,10 @@
   "scripts": {
     "build": "npm run --prefix client build && npm run --prefix server build",
     "start": "node server/dist/app.js",
+    "lint": "npm run --prefix client lint",
     "dev:react": "npm run --prefix client dev",
-    "dev:server": "npm run --prefix server dev"
+    "dev:server": "npm run --prefix server dev",
+    "prepare": "husky"
   },
   "keywords": [],
   "author": "",
@@ -19,5 +21,8 @@
   "dependencies": {
     "@roamhq/wrtc": "^0.8.0",
     "typescript": "^5.5.4"
+  },
+  "devDependencies": {
+    "husky": "^9.1.6"
   }
 }

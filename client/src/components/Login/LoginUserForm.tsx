@@ -17,14 +17,13 @@ function LoginUserForm({
     control,
     handleSubmit,
     clearErrors,
-    formState: { errors },
   } = useForm<LoginUserSchema>({
     mode: "onBlur",
     shouldFocusError: true,
     resolver: zodResolver(authSchema.loginUserSchema),
   });
 
-  const [login, { isLoading, isError }] = useLoginMutation();
+  const [login,] = useLoginMutation();
   const navigate = useNavigate();
 
   const onSubmit = async ({ email, password }: LoginUserSchema) => {
@@ -40,6 +39,7 @@ function LoginUserForm({
     }
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const onTouch = (name: any) => clearErrors(name);
 
   return (
@@ -85,7 +85,7 @@ function LoginUserForm({
         to={"/auth?new=true"}
         className="underline text-blue-600 text-center"
       >
-        Don't have an account?
+        {`Don't have an account?`}
       </Link>
     </motion.form>
   );

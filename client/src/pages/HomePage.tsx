@@ -3,14 +3,10 @@ import { useNavigate } from "react-router-dom";
 import Button from "../components/ui/Button";
 import Page from "../components/ui/Page";
 import StreamVideo from "../components/webRTC/StreamVideo";
-import { useAppSelector } from "../hooks/redux";
-import { selectMedia } from "../store/services/media";
 
-type Props = {};
 
-export default function Home({}: Props) {
+export default function Home() {
   const [roomID, setRoomID] = useState("");
-  const media = useAppSelector(selectMedia);
   const navigate = useNavigate();
 
   function handleSubmit() {

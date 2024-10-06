@@ -12,11 +12,11 @@ export async function fetchDevices() {
 
 export async function fetchPermissions() {
   const camera = await navigator.permissions.query({
-    // @ts-ignore
+    // @ts-expect-error property not in doc
     name: "camera",
   });
   const microphone = await navigator.permissions.query({
-    // @ts-ignore
+    // @ts-expect-error property not in doc
     name: "microphone",
   });
   return {

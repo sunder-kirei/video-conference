@@ -2,8 +2,8 @@ import { useRouteError } from "react-router-dom";
 import Page from "../components/ui/Page";
 
 export default function ErrorPage() {
-  const error: any = useRouteError();
-
+  const error: unknown = useRouteError();
+  console.error(error)
   return (
     <Page id="error-page">
       <h1>Oops!</h1>

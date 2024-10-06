@@ -8,7 +8,7 @@ export const api = createApi({
     baseUrl: "/api/user",
     credentials: "include",
   }),
-  endpoints: ({ query, mutation }) => {
+  endpoints: ({ query }) => {
     return {
       getUser: query<User, void>({
         query: () => {

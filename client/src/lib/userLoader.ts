@@ -4,7 +4,7 @@ import store from "../store/store";
 export const userLoader = async () => {
   const getUser = store.dispatch(api.endpoints.getUser.initiate());
 
-  const user = await getUser.unwrap().catch((error) => {
+  const user = await getUser.unwrap().catch(() => {
     return null;
   });
 

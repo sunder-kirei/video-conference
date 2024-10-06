@@ -1,5 +1,5 @@
+import { HTMLMotionProps, motion } from "framer-motion";
 import { PropsWithChildren } from "react";
-import { AnimatePresence, HTMLMotionProps, motion } from "framer-motion";
 import { twMerge } from "tailwind-merge";
 
 const variants = {

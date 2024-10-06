@@ -12,9 +12,8 @@ import { RTC } from "../lib/webRTC/RTC";
 import { createRTC, selectMedia } from "../store/services/media";
 import { RoomAck, RTCUser } from "../types";
 
-type Props = {};
 
-function CallPage({}: Props) {
+function CallPage() {
   const [remoteStreams, setRemoteStreams] = useState<MediaStream[]>([]);
   const [remoteUsers, setRemoteUsers] = useState<
     { user: RTCUser; streams: string[] }[]

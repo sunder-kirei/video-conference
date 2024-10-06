@@ -4,9 +4,8 @@ import { selectUser } from "../../store/services/user";
 import LoadingIcon from "../Loading/LoadingIcon";
 import UserBadge from "./UserBadge";
 
-type Props = {};
 
-function Nav({}: Props) {
+function Nav() {
   const user = useAppSelector(selectUser);
   const navigate = useNavigate();
 

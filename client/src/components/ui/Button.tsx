@@ -1,7 +1,6 @@
 import { HTMLMotionProps, motion } from "framer-motion";
 import { twMerge } from "tailwind-merge";
 
-type Props = {};
 
 function Button({ className, ...props }: HTMLMotionProps<"button">) {
   return (

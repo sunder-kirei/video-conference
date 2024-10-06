@@ -1,7 +1,6 @@
 import React, { PropsWithChildren } from "react";
 import { twMerge } from "tailwind-merge";
 
-type Props = {};
 
 function RoundedButton({
   className,

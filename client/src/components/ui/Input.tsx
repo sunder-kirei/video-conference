@@ -1,9 +1,11 @@
+/* eslint-disable react/prop-types */
 import { AnimatePresence, motion } from "framer-motion";
 import { useController, UseControllerProps } from "react-hook-form";
 import { twMerge } from "tailwind-merge";
 
 interface InputProps {
   props: React.InputHTMLAttributes<HTMLInputElement>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   fieldProps: UseControllerProps<any>;
 }
 

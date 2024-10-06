@@ -2,7 +2,7 @@ import { LoaderFunction, redirect } from "react-router-dom";
 import store from "../store/store";
 import { userLoader } from "./userLoader";
 
-export const joinLoader: LoaderFunction<any> = async ({ params }) => {
+export const joinLoader: LoaderFunction<unknown> = async ({ params }) => {
   await userLoader();
 
   const roomID = params.roomID;

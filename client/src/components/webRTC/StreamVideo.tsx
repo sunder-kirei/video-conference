@@ -34,17 +34,17 @@ export default function StreamVideo({
   useEffect(() => {
     async function setup() {
       const microphone = await navigator.permissions.query({
-        // @ts-ignore
+        // @ts-expect-error property not in doc
         name: "microphone",
       });
       microphone.addEventListener("change", () => {
         dispatch(handlePermissionChange("audio"));
       });
       const camera = await navigator.permissions.query({
-        // @ts-ignore
+        // @ts-expect-error property not in doc
         name: "camera",
       });
-      camera.addEventListener("change", (event) => {
+      camera.addEventListener("change", () => {
         dispatch(handlePermissionChange("video"));
       });
 

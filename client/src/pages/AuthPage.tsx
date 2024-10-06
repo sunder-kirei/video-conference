@@ -6,8 +6,6 @@ import LoginUserForm from "../components/Login/LoginUserForm";
 import Carousel from "../components/ui/Carousel";
 import Page from "../components/ui/Page";
 
-type Props = {};
-
 const images = [
   "/assets/messenger.png",
   "/assets/login-connect.svg",
@@ -29,8 +27,8 @@ const data = [
   },
 ];
 
-function AuthPage({}: Props) {
-  const [searchParams, setUserParams] = useSearchParams();
+function AuthPage() {
+  const [searchParams] = useSearchParams();
 
   const onSubmit = async () => {
     const url =

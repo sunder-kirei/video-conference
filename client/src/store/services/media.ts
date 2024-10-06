@@ -2,7 +2,7 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { fetchDevices, fetchPermissions } from "../../lib/media";
 import { MediaInfo, MediaState, RootState } from "../../types";
 
-export const initThunk = createAsyncThunk("init", async (_, thunkApi) => {
+export const initThunk = createAsyncThunk("init", async () => {
   // will only handle init now
   const { camera, microphone } = await fetchPermissions();
   const { audioDevices, videoDevices } = await fetchDevices();

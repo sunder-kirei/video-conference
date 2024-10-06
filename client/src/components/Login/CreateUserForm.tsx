@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { zodResolver } from "@hookform/resolvers/zod";
 import { HTMLMotionProps, motion } from "framer-motion";
 import { useForm } from "react-hook-form";
@@ -16,7 +17,6 @@ function CreateAccountForm({
   const {
     handleSubmit,
     clearErrors,
-    formState: { errors },
     control,
   } = useForm<CreateUserSchema>({
     mode: "onBlur",

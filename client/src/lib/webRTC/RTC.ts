@@ -84,7 +84,7 @@ export class RTC {
     });
 
     // on disconnect
-    window.onbeforeunload = (event) => {
+    window.onbeforeunload = () => {
       this.socket.emit(SocketEvent.Disconnect);
     };
 
@@ -221,18 +221,14 @@ export class RTC {
   }
 
   initRTC() {
-    try {
-      this.rtc = new RTCPeerConnection({
-        ...this.config,
-        iceCandidatePoolSize: 64,
-      });
-      this.stream.getTracks().forEach((track) => {
-        this.addTrack(track);
-      });
-      this.setupListeners();
-    } catch (err) {
-      throw err;
-    }
+    this.rtc = new RTCPeerConnection({
+      ...this.config,
+      iceCandidatePoolSize: 64,
+    });
+    this.stream.getTracks().forEach((track) => {
+      this.addTrack(track);
+    });
+    this.setupListeners();
   }
 
   private async connect() {
@@ -244,8 +240,6 @@ export class RTC {
       });
       await this.rtc!.setLocalDescription(offer);
       this.socket.emit(SocketEvent.Offer, this.rtc!.localDescription!);
-    } catch (err) {
-      throw err;
     } finally {
       this.makingOffer = false;
     }
@@ -254,13 +248,11 @@ export class RTC {
   private setupListeners() {
     if (!this.rtc) throw "RTC not init";
 
-    let makingOffer = false;
-
     this.rtc.onconnectionstatechange = () =>
       console.log({ connectionState: this.rtc?.connectionState });
 
     // handle incoming remote tracks
-    this.rtc.ontrack = ({ streams, track, receiver, transceiver }) => {
+    this.rtc.ontrack = ({ streams, track }) => {
       // TODO
       streams.forEach((stream) => {
         this.setRemoteTrack((prev) => {
