@@ -31,7 +31,7 @@ export const handleDeviceChange = createAsyncThunk(
 
     if (state.audio.availableDevices.length !== audioDevices.length) {
       const prevDevice = audioDevices.find(
-        (device) => device.deviceId === state.audio.selectedDevice?.deviceId
+        (device) => device.deviceId === state.audio.selectedDevice?.deviceId,
       );
 
       if (!prevDevice) {
@@ -39,7 +39,7 @@ export const handleDeviceChange = createAsyncThunk(
       }
     } else {
       const prevDevice = videoDevices.find(
-        (device) => device.deviceId === state.video.selectedDevice?.deviceId
+        (device) => device.deviceId === state.video.selectedDevice?.deviceId,
       );
 
       if (!prevDevice) {
@@ -48,7 +48,7 @@ export const handleDeviceChange = createAsyncThunk(
     }
 
     return { audioDevices, videoDevices };
-  }
+  },
 );
 
 export const handlePermissionChange = createAsyncThunk(
@@ -66,7 +66,7 @@ export const handlePermissionChange = createAsyncThunk(
 
     const { audioDevices, videoDevices } = await fetchDevices();
     return { audioDevices, videoDevices, camera, microphone };
-  }
+  },
 );
 
 export const addTrack = createAsyncThunk(
@@ -85,7 +85,7 @@ export const addTrack = createAsyncThunk(
       // cannot alter state in thunk must do so in extraReducer
       return stream;
     }
-  }
+  },
 );
 
 export const toggleTracks = createAsyncThunk(
@@ -117,7 +117,7 @@ export const toggleTracks = createAsyncThunk(
       return newTracks;
     }
     return [];
-  }
+  },
 );
 
 const initialState = {

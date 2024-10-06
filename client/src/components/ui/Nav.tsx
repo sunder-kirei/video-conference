@@ -4,21 +4,20 @@ import { selectUser } from "../../store/services/user";
 import LoadingIcon from "../Loading/LoadingIcon";
 import UserBadge from "./UserBadge";
 
-
 function Nav() {
   const user = useAppSelector(selectUser);
   const navigate = useNavigate();
 
   return (
-    <nav className="h-20 p-4 w-full border-b">
+    <nav className="h-20 w-full border-b p-4">
       <ul className="flex h-full justify-between">
         <li
-          className="flex h-full gap-x-4 items-center w-fit font-heading text-4xl cursor-pointer"
+          className="flex h-full w-fit cursor-pointer items-center gap-x-4 font-heading text-4xl"
           onClick={() => {
             navigate("/");
           }}
         >
-          <LoadingIcon noanimation className="h-full aspect-square p-2" />
+          <LoadingIcon noanimation className="aspect-square h-full p-2" />
           Video Conference
         </li>
 

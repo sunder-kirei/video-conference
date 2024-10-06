@@ -14,11 +14,7 @@ function CreateAccountForm({
   callback,
   ...props
 }: HTMLMotionProps<"form"> & { callback: string | null }) {
-  const {
-    handleSubmit,
-    clearErrors,
-    control,
-  } = useForm<CreateUserSchema>({
+  const { handleSubmit, clearErrors, control } = useForm<CreateUserSchema>({
     mode: "onBlur",
     shouldFocusError: true,
     reValidateMode: "onBlur",
@@ -40,7 +36,7 @@ function CreateAccountForm({
         loading: "Creating User...",
         success: <b>Auth Successful👍</b>,
         error: <b>Something went wrong😥</b>,
-      }
+      },
     );
     navigate(callback ?? "/");
   };
@@ -67,8 +63,8 @@ function CreateAccountForm({
       onSubmit={handleSubmit(onSubmit)}
       {...props}
       className={twMerge(
-        "flex flex-col items-center justify-center w-full gap-y-4 p-8",
-        props.className
+        "flex w-full flex-col items-center justify-center gap-y-4 p-8",
+        props.className,
       )}
     >
       <Input
@@ -98,7 +94,7 @@ function CreateAccountForm({
       <Button type="submit" className="mt-4">
         Create Account
       </Button>
-      <Link to={"/auth"} className="underline text-blue-600 text-center">
+      <Link to={"/auth"} className="text-center text-blue-600 underline">
         Already have an account?
       </Link>
     </motion.form>

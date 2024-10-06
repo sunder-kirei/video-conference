@@ -18,19 +18,19 @@ body {
 }
 
 .rnd_enabled {
-  @apply text-blue-600 border-blue-600 bg-blue-100;
+  @apply border-blue-600 bg-blue-100 text-blue-600;
 }
 
 .rnd_disabled {
-  @apply text-gray-200 bg-gray-400;
+  @apply bg-gray-400 text-gray-200;
 }
 
 .rnd_no_permission {
-  @apply text-red-600 bg-red-100;
+  @apply bg-red-100 text-red-600;
 }
 
 .rnd_danger {
-  @apply border-red-500 text-red-500 bg-red-100;
+  @apply border-red-500 bg-red-100 text-red-500;
 }
 
 @layer transitions {
@@ -70,7 +70,7 @@ body {
 }
 
 .video-container {
-  @apply h-fit w-full relative;
+  @apply relative h-fit w-full;
 }
 
 .video-container:hover .rnd_btn {
@@ -78,11 +78,11 @@ body {
 }
 
 .video-container:hover .user-tag {
-  @apply opacity-100 translate-y-0;
+  @apply translate-y-0 opacity-100;
 }
 
 .user-badge {
-  @apply absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-32 z-10 max-h-[50%];
+  @apply absolute left-1/2 top-1/2 z-10 h-32 max-h-[50%] -translate-x-1/2 -translate-y-1/2;
 }
 
 .rnd_btn {
@@ -90,7 +90,7 @@ body {
 }
 
 .controls-container {
-  @apply absolute bottom-0 flex w-full h-24 p-4 justify-center z-20 gap-x-4;
+  @apply absolute bottom-0 z-20 flex h-24 w-full justify-center gap-x-4 p-4;
 }
 
 .home-page {

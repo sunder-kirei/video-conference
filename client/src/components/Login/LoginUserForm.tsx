@@ -13,17 +13,13 @@ function LoginUserForm({
   callback,
   ...props
 }: HTMLMotionProps<"form"> & { callback: string | null }) {
-  const {
-    control,
-    handleSubmit,
-    clearErrors,
-  } = useForm<LoginUserSchema>({
+  const { control, handleSubmit, clearErrors } = useForm<LoginUserSchema>({
     mode: "onBlur",
     shouldFocusError: true,
     resolver: zodResolver(authSchema.loginUserSchema),
   });
 
-  const [login,] = useLoginMutation();
+  const [login] = useLoginMutation();
   const navigate = useNavigate();
 
   const onSubmit = async ({ email, password }: LoginUserSchema) => {
@@ -62,8 +58,8 @@ function LoginUserForm({
       onSubmit={handleSubmit(onSubmit)}
       {...props}
       className={twMerge(
-        "flex flex-col items-center justify-center w-full gap-y-4 p-8",
-        props.className
+        "flex w-full flex-col items-center justify-center gap-y-4 p-8",
+        props.className,
       )}
     >
       <Input
@@ -83,7 +79,7 @@ function LoginUserForm({
       </Button>
       <Link
         to={"/auth?new=true"}
-        className="underline text-blue-600 text-center"
+        className="text-center text-blue-600 underline"
       >
         {`Don't have an account?`}
       </Link>

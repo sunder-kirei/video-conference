@@ -13,11 +13,11 @@ function Input({ props, fieldProps }: InputProps) {
   const { field, fieldState } = useController(fieldProps);
 
   return (
-    <motion.div layout className={twMerge("max-w-96 w-full", props.className)}>
+    <motion.div layout className={twMerge("w-full max-w-96", props.className)}>
       <input
         {...props}
         {...field}
-        className="p-4 rounded z-10 w-full border outline-blue-600"
+        className="z-10 w-full rounded border p-4 outline-blue-600"
       />
       <AnimatePresence mode="wait">
         {fieldState.error && (
@@ -36,7 +36,7 @@ function Input({ props, fieldProps }: InputProps) {
               x: -20,
               opacity: 0,
             }}
-            className="px-4 text-red-500 italic -z-10"
+            className="-z-10 px-4 italic text-red-500"
           >
             {fieldState.error.message}
           </motion.p>

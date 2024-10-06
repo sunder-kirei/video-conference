@@ -25,7 +25,7 @@ function UserBadge({
               }
         }
         alt="profile picture"
-        className="h-full aspect-square rounded-full border-2 border-blue-600 cursor-pointer"
+        className="aspect-square h-full cursor-pointer rounded-full border-2 border-blue-600"
         src={profilePicture}
       />
     </div>

@@ -49,7 +49,7 @@ export default function StreamVideo({
       });
 
       navigator.mediaDevices.addEventListener("devicechange", () =>
-        dispatch(handleDeviceChange())
+        dispatch(handleDeviceChange()),
       );
 
       dispatch(initThunk());
@@ -90,7 +90,7 @@ export default function StreamVideo({
               ? audioEnabled
                 ? "rnd_enabled"
                 : "rnd_disabled"
-              : "rnd_no_permission") + " rnd_btn "
+              : "rnd_no_permission") + " rnd_btn"
           }
         >
           <Mic />
@@ -104,7 +104,7 @@ export default function StreamVideo({
               ? videoEnabled
                 ? "rnd_enabled"
                 : "rnd_disabled"
-              : "rnd_no_permission") + " rnd_btn "
+              : "rnd_no_permission") + " rnd_btn"
           }
         >
           <Video />

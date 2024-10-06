@@ -13,5 +13,5 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <Provider store={store}>
     {createPortal(<Toaster position="bottom-right" />, document.body)}
     <RouterProvider router={router} fallbackElement={<LoadingPage />} />
-  </Provider>
+  </Provider>,
 );

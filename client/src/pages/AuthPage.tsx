@@ -42,7 +42,7 @@ function AuthPage() {
   return (
     <Page className="grid grid-cols-2 items-center gap-x-4 overflow-y-hidden">
       <Carousel className="mx-auto p-12" images={images} data={data} />
-      <main className="flex flex-col h-full justify-center items-center">
+      <main className="flex h-full flex-col items-center justify-center">
         <AnimatePresence mode="wait">
           {searchParams.get("new") ? (
             <CreateAccountForm
@@ -56,7 +56,7 @@ function AuthPage() {
             />
           )}
         </AnimatePresence>
-        <GoogleAuthButton className="bg-green-400 mt-4" onClick={onSubmit} />
+        <GoogleAuthButton className="mt-4 bg-green-400" onClick={onSubmit} />
       </main>
     </Page>
   );

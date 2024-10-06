@@ -53,7 +53,7 @@ export class RTC {
       >
     >,
     config?: Config,
-    constraints: Constraints = { audio: true, video: true }
+    constraints: Constraints = { audio: true, video: true },
   ) {
     if (config) this.config = config;
     this.socket = io("/", {
@@ -92,7 +92,7 @@ export class RTC {
     this.socket.on(
       SocketEvent.ICE,
       async (candidate: RTCIceCandidate) =>
-        await this.rtc!.addIceCandidate(candidate)
+        await this.rtc!.addIceCandidate(candidate),
     );
 
     // on remote offer
@@ -126,16 +126,16 @@ export class RTC {
         streamOwners: {
           user: RTCUser;
           streams: string[];
-        }[]
+        }[],
       ) => {
         this.setRemoteUsers((prev) => [...prev, ...streamOwners]);
-      }
+      },
     );
 
     // on removeStream
     this.socket.on(SocketEvent.RemoveStream, (streamID: string) => {
       this.setRemoteTrack((prev) =>
-        prev.filter((stream) => stream.id !== streamID)
+        prev.filter((stream) => stream.id !== streamID),
       );
     });
 
@@ -153,7 +153,7 @@ export class RTC {
             return [...prev];
           });
         });
-      }
+      },
     );
   }
 

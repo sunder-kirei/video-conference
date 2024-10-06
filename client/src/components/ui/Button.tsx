@@ -1,14 +1,13 @@
 import { HTMLMotionProps, motion } from "framer-motion";
 import { twMerge } from "tailwind-merge";
 
-
 function Button({ className, ...props }: HTMLMotionProps<"button">) {
   return (
     <motion.button
       {...props}
       className={twMerge(
-        "max-w-96 w-full min-w-fit p-4 bg-blue-600 text-white text-xl font-bold cursor-pointer",
-        className
+        "w-full min-w-fit max-w-96 cursor-pointer bg-blue-600 p-4 text-xl font-bold text-white",
+        className,
       )}
       whileHover={{
         scale: 1.2,

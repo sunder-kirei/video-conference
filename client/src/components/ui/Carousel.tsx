@@ -61,8 +61,8 @@ function Carousel({ className, images, data }: Props) {
   return (
     <div
       className={twMerge(
-        "flex flex-col items-center w-full aspect-square overflow-hidden gap-y-4",
-        className
+        "flex aspect-square w-full flex-col items-center gap-y-4 overflow-hidden",
+        className,
       )}
     >
       <AnimatePresence mode="wait" custom={direction}>
@@ -92,7 +92,7 @@ function Carousel({ className, images, data }: Props) {
             duration: 0.25,
           }}
           custom={direction}
-          className="h-full p-8 aspect-square bg-no-repeat bg-contain  bg-origin-content"
+          className="aspect-square h-full bg-contain bg-no-repeat bg-origin-content p-8"
         />
       </AnimatePresence>
 
@@ -115,7 +115,7 @@ function Carousel({ className, images, data }: Props) {
 
       <motion.div
         layout
-        className="position w-fit bg-white rounded-full flex justify-center gap-x-4 flex-row h-4 py-1 px-3"
+        className="position flex h-4 w-fit flex-row justify-center gap-x-4 rounded-full bg-white px-3 py-1"
       >
         {images.map((_, idx) => {
           return (

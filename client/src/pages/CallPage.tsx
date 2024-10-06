@@ -12,7 +12,6 @@ import { RTC } from "../lib/webRTC/RTC";
 import { createRTC, selectMedia } from "../store/services/media";
 import { RoomAck, RTCUser } from "../types";
 
-
 function CallPage() {
   const [remoteStreams, setRemoteStreams] = useState<MediaStream[]>([]);
   const [remoteUsers, setRemoteUsers] = useState<
@@ -57,7 +56,7 @@ function CallPage() {
       media.stream,
       onRoomJoined,
       setRemoteStreams,
-      setRemoteUsers
+      setRemoteUsers,
     );
 
     dispatch(createRTC(rtc));
@@ -78,7 +77,7 @@ function CallPage() {
 
   return (
     <Page className="flex flex-col">
-      <div className="video-grid h-full w-full overflow-y-auto p-4 items-center">
+      <div className="video-grid h-full w-full items-center overflow-y-auto p-4">
         {remoteStreams.map((stream) => {
           const user = remoteUsers.find(({ streams }) => {
             if (streams.find((sid) => sid === stream.id)) return true;
@@ -96,7 +95,7 @@ function CallPage() {
               {!isEnabled && (
                 <UserBadge user={user?.user} className="user-badge" />
               )}
-              <span className="user-tag text-white absolute bottom-2 left-4 opacity-0 translate-y-8 custom_transition">
+              <span className="user-tag custom_transition absolute bottom-2 left-4 translate-y-8 text-white opacity-0">
                 {user?.user.username}
               </span>
             </div>
@@ -104,9 +103,9 @@ function CallPage() {
         })}
         <StreamVideo />
       </div>
-      <div className="controls h-24 w-full flex items-center justify-center gap-x-4 relative font-semibold">
+      <div className="controls relative flex h-24 w-full items-center justify-center gap-x-4 font-semibold">
         <button
-          className="absolute left-4 copy flex items-center justify-center gap-x-4 rounded-lg border-2 p-2 border-blue-600 text-blue-600 text-lg"
+          className="copy absolute left-4 flex items-center justify-center gap-x-4 rounded-lg border-2 border-blue-600 p-2 text-lg text-blue-600"
           title="Copy link"
           onClick={() => {
             handleCopy();

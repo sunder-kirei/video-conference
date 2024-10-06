@@ -31,7 +31,7 @@ const slice = createSlice({
       api.endpoints.getUser.matchFulfilled,
       (state, { payload }) => {
         state.user = payload;
-      }
+      },
     );
   },
 });
