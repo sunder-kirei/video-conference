@@ -11,8 +11,7 @@
     "start": "node server/dist/app.js",
     "lint": "npm run --prefix client lint",
     "dev:react": "npm run --prefix client dev",
-    "dev:server": "npm run --prefix server dev",
-    "prepare": "husky"
+    "dev:server": "npm run --prefix server dev"
   },
   "keywords": [],
   "author": "",
