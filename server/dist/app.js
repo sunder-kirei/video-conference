@@ -19,7 +19,8 @@ const cors_1 = __importDefault(require("cors"));
 const dotenv_1 = __importDefault(require("dotenv"));
 const express_1 = __importDefault(require("express"));
 const express_session_1 = __importDefault(require("express-session"));
-const http_1 = require("http");
+const https_1 = require("https");
+const fs_1 = require("fs");
 const short_unique_id_1 = __importDefault(require("short-unique-id"));
 const socket_io_1 = require("socket.io");
 const path_1 = __importDefault(require("path"));
@@ -30,12 +31,16 @@ const routes_1 = __importDefault(require("./routes"));
 const socket_1 = __importDefault(require("./socket"));
 // TODO add entry in DB and use its id
 exports.uid = new short_unique_id_1.default({ length: 5 }).randomUUID;
+const options = {
+    key: (0, fs_1.readFileSync)("./server-key.pem"),
+    cert: (0, fs_1.readFileSync)("./server-cert.pem"),
+};
 const memDB = {
     rooms: {},
     socketInfo: new Map(),
 };
 dotenv_1.default.config();
-const PORT = (_a = process.env.PORT) !== null && _a !== void 0 ? _a : 3000;
+const PORT = (_a = process.env.PORT) !== null && _a !== void 0 ? _a : 443;
 const app = (0, express_1.default)();
 app.use((0, cors_1.default)({
     origin: `${process.env.FRONTEND_ORIGIN}`,
@@ -48,14 +53,14 @@ app.use((0, express_session_1.default)({
     saveUninitialized: false,
 }));
 app.use(express_1.default.json());
-const httpServer = (0, http_1.createServer)(app);
-const io = new socket_io_1.Server(httpServer, {
+const httpsServer = (0, https_1.createServer)(options, app);
+const io = new socket_io_1.Server(httpsServer, {
     cors: {
         credentials: true,
         origin: process.env.FRONTEND_ORIGIN,
     },
 });
-httpServer.listen(PORT, () => __awaiter(void 0, void 0, void 0, function* () {
+httpsServer.listen(PORT, () => __awaiter(void 0, void 0, void 0, function* () {
     yield (0, connectToDB_1.default)();
     GoogleAuth_1.GoogleAuth.init(process.env.CLIENT_ID, process.env.CLIENT_SECRET, process.env.REDIRECT_URL);
     (0, socket_1.default)(io, memDB);

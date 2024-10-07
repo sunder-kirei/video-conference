@@ -73,5 +73,5 @@ httpsServer.listen(PORT, async () => {
     res.sendFile("index.html", { root: react });
   });
 
-  logger.info(`Server listening on http:/localhost:${PORT}`);
+  logger.info(`Server listening on http://localhost:${PORT}`);
 });
