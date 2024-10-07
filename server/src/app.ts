@@ -3,7 +3,8 @@ import cors from "cors";
 import dotenv from "dotenv";
 import express from "express";
 import session from "express-session";
-import { createServer } from "http";
+import { createServer } from "https";
+import { readFileSync } from "fs";
 import ShortUniqueId from "short-unique-id";
 import { Server } from "socket.io";
 
@@ -17,6 +18,10 @@ import { MemDB } from "./types";
 
 // TODO add entry in DB and use its id
 export const { randomUUID: uid } = new ShortUniqueId({ length: 5 });
+const options = {
+  key: readFileSync("./server-key.pem"),
+  cert: readFileSync("./server-cert.pem"),
+};
 
 const memDB: MemDB = {
   rooms: {},
@@ -24,7 +29,7 @@ const memDB: MemDB = {
 };
 dotenv.config();
 
-const PORT = process.env.PORT ?? 3000;
+const PORT = process.env.PORT ?? 443;
 const app = express();
 
 app.use(
@@ -43,16 +48,16 @@ app.use(
 );
 app.use(express.json());
 
-const httpServer = createServer(app);
+const httpsServer = createServer(options, app);
 
-const io = new Server(httpServer, {
+const io = new Server(httpsServer, {
   cors: {
     credentials: true,
     origin: process.env.FRONTEND_ORIGIN,
   },
 });
 
-httpServer.listen(PORT, async () => {
+httpsServer.listen(PORT, async () => {
   await connectToDB();
   GoogleAuth.init(
     process.env.CLIENT_ID!,

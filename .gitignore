@@ -3,3 +3,6 @@ keys
 logs
 dist
 .env
+*.cert
+*.pem
+*.csr
