@@ -11,6 +11,7 @@ export class ServerRTC {
   socket: Socket;
   makingOffer = false;
   ownedStreams: Set<string> = new Set();
+  sentStreams: { user?: RTCUser; streams: string[] }[];
   streamEnabledStatus: {
     streamID: string;
     trackID: string;
@@ -42,8 +43,10 @@ export class ServerRTC {
 
     this.socket = socket;
     this.roomID = roomID;
+    this.sentStreams = [];
 
     this.init();
+    this._addTracksBeforeConnect();
     this.setupListeners();
     this.setupSocketListeners();
   }
@@ -72,9 +75,8 @@ export class ServerRTC {
     }
   }
 
-  private _onjoinroom() {
+  private _addTracksBeforeConnect() {
     try {
-      // _addtrack for each event in trackEvents of each peer
       const streamOwners = [] as { user?: RTCUser; streams: string[] }[];
 
       Object.entries(this.memDB.rooms[this.roomID]).forEach(
@@ -89,11 +91,18 @@ export class ServerRTC {
               streams: Array.from(streams),
             });
           }
-          this.socket.emit(SocketEvent.StreamStatus, rtc?.streamEnabledStatus);
         }
       );
+      this.sentStreams.push(...streamOwners);
+    } catch (err) {
+      logger.error(err)
+    }
+  }
 
-      this.socket.emit(SocketEvent.NewStreams, streamOwners);
+  private _onjoinroom() {
+    try {
+      this.socket.emit(SocketEvent.NewStreams, this.sentStreams);
+
     } catch (err) {
       logger.error(err);
     }

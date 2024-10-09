@@ -41,7 +41,9 @@ class ServerRTC {
         this.memDB = memDB;
         this.socket = socket;
         this.roomID = roomID;
+        this.sentStreams = [];
         this.init();
+        this._addTracksBeforeConnect();
         this.setupListeners();
         this.setupSocketListeners();
     }
@@ -67,14 +69,11 @@ class ServerRTC {
             logger_1.default.error(err);
         }
     }
-    _onjoinroom() {
-        logger_1.default.info({ "_onroomjoined": this.socket.id });
+    _addTracksBeforeConnect() {
         try {
-            // _addtrack for each event in trackEvents of each peer
             const streamOwners = [];
             Object.entries(this.memDB.rooms[this.roomID]).forEach(([socketID, { trackEvents, rtc }]) => {
                 var _a;
-                console.dir({ track: trackEvents.entries() });
                 if (socketID === this.socket.id)
                     return;
                 trackEvents.forEach((event) => this._addtrack(event, this));
@@ -85,9 +84,16 @@ class ServerRTC {
                         streams: Array.from(streams),
                     });
                 }
-                this.socket.emit(types_1.SocketEvent.StreamStatus, rtc === null || rtc === void 0 ? void 0 : rtc.streamEnabledStatus);
             });
-            this.socket.emit(types_1.SocketEvent.NewStreams, streamOwners);
+            this.sentStreams.push(...streamOwners);
+        }
+        catch (err) {
+            logger_1.default.error(err);
+        }
+    }
+    _onjoinroom() {
+        try {
+            this.socket.emit(types_1.SocketEvent.NewStreams, this.sentStreams);
         }
         catch (err) {
             logger_1.default.error(err);
@@ -96,7 +102,6 @@ class ServerRTC {
     _addtrack(event, rtc) {
         try {
             event.streams.forEach((stream) => {
-                logger_1.default.warn({ addingTrack: this.socket.id });
                 rtc.rtc.addTrack(event.track, stream);
             });
         }
@@ -122,7 +127,6 @@ class ServerRTC {
     }
     setupListeners() {
         this.rtc.onconnectionstatechange = () => {
-            logger_1.default.info({ "connstate": this.rtc.connectionState });
             if (this.rtc.connectionState === "connected") {
                 this._onjoinroom();
             }
@@ -132,7 +136,6 @@ class ServerRTC {
         };
         // handle incoming remote tracks
         this.rtc.ontrack = (event) => {
-            logger_1.default.info({ "track": event.streams });
             try {
                 // rtpReceiver is automatically added to the rtc
                 // insert trackevent to trackevents to be used on later connections
