@@ -1,6 +1,7 @@
 import { Server } from "socket.io";
 import { MemDB, SocketEvent } from "../types";
 import socketService from "./socket.service";
+import logger from "../lib/logger";
 
 function setup(io: Server, memDB: MemDB) {
   io.use(async (socket, next) => {
@@ -8,6 +9,7 @@ function setup(io: Server, memDB: MemDB) {
   });
 
   io.on("connection", (socket) => {
+    logger.info("connected");
     socket.on(SocketEvent.Codecs, (codecs: RTCRtpCodec[]) => {
       socketService.handleCodecs(socket, codecs, memDB);
     });

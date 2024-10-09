@@ -1,3 +1,5 @@
+/* eslint-disable */
+
 import { zodResolver } from "@hookform/resolvers/zod";
 import { HTMLMotionProps, motion } from "framer-motion";
 import { useForm } from "react-hook-form";

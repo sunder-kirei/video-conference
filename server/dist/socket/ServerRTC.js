@@ -135,14 +135,19 @@ class ServerRTC {
                 // insert stream in streams
                 event.streams.forEach((stream) => {
                     var _a;
-                    if (!this.ownedStreams.has(stream.id)) {
-                        this.ownedStreams.add(stream.id);
-                        this.socket.to(this.roomID).emit(types_1.SocketEvent.NewStreams, [
-                            {
-                                user: (_a = this.memDB.socketInfo.get(this.socket.id)) === null || _a === void 0 ? void 0 : _a.user,
-                                streams: [stream.id],
-                            },
-                        ]);
+                    try {
+                        if (!this.ownedStreams.has(stream.id)) {
+                            this.ownedStreams.add(stream.id);
+                            this.socket.to(this.roomID).emit(types_1.SocketEvent.NewStreams, [
+                                {
+                                    user: (_a = this.memDB.socketInfo.get(this.socket.id)) === null || _a === void 0 ? void 0 : _a.user,
+                                    streams: [stream.id],
+                                },
+                            ]);
+                        }
+                    }
+                    catch (err) {
+                        logger_1.default.error(err);
                     }
                 });
                 // add track to all peers

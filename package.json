@@ -1,10 +1,6 @@
 {
   "name": "video-conference",
   "version": "1.0.0",
-  "workspaces": [
-    "client",
-    "server"
-  ],
   "scripts": {
     "lint": "npm run --prefix client lint",
     "dev:server": "npm run --prefix server dev",

@@ -149,14 +149,18 @@ export class ServerRTC {
 
         // insert stream in streams
         event.streams.forEach((stream) => {
-          if (!this.ownedStreams.has(stream.id)) {
-            this.ownedStreams.add(stream.id);
-            this.socket.to(this.roomID).emit(SocketEvent.NewStreams, [
-              {
-                user: this.memDB.socketInfo.get(this.socket.id)?.user,
-                streams: [stream.id],
-              },
-            ]);
+          try {
+            if (!this.ownedStreams.has(stream.id)) {
+              this.ownedStreams.add(stream.id);
+              this.socket.to(this.roomID).emit(SocketEvent.NewStreams, [
+                {
+                  user: this.memDB.socketInfo.get(this.socket.id)?.user,
+                  streams: [stream.id],
+                },
+              ]);
+            }
+          } catch (err) {
+            logger.error(err);
           }
         });
 

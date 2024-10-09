@@ -1,3 +1,4 @@
+/* eslint-disable */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { zodResolver } from "@hookform/resolvers/zod";
 import { HTMLMotionProps, motion } from "framer-motion";

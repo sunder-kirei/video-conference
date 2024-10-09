@@ -1,0 +1,32 @@
+services:
+  dev_client:
+    build: 
+      dockerfile: Dockerfile
+      target: dev_client
+    volumes:
+      - type: bind
+        source: ./client
+        target: /usr/app/
+      - type: volume
+        target: /usr/app/node_modules 
+    environment:
+      - WATCHPACK_POLLING=true
+    env_file:
+      - .env.client
+    ports:
+      - 3001:3000
+  dev_server:
+    build: 
+      dockerfile: Dockerfile
+      target: dev_server
+    volumes:
+    - type: bind
+      source: ./server
+      target: /usr/app/
+    - type: volume
+      target: /usr/app/node_modules 
+    env_file:
+      - .env.server
+      - .env
+    ports:
+      - ${PORT}:${PORT}

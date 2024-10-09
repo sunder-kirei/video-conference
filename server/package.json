@@ -4,7 +4,7 @@
   "main": "dist/app.js",
   "scripts": {
     "start": "node .",
-    "dev": "tsc-watch --onSuccess \"node ./dist/app.js\"",
+    "dev": "tsc-watch --onSuccess \"node ./dist/app.js\" --watchFile dynamicPriorityPolling --watchDirectory dynamicPriorityPolling",
     "build": "npx tsc --build"
   },
   "author": "",

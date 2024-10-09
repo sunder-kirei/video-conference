@@ -2,7 +2,7 @@ node_modules
 keys
 logs
 dist
-.env.*
+.env*
 *.cert
 *.pem
 *.csr

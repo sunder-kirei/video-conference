@@ -25,7 +25,7 @@ const memDB: MemDB = {
 };
 dotenv.config();
 
-const PORT = process.env.PORT ?? 8080;
+const PORT = process.env.PORT ?? 80;
 const app = express();
 
 app.use(
@@ -63,11 +63,13 @@ httpsServer.listen(PORT, async () => {
   socket(io, memDB);
   routes(app);
 
-  const react = path.join("client", "build");
-  app.use(express.static(react));
-  app.get("*", function (req, res) {
-    res.sendFile("index.html", { root: react });
-  });
+  if (process.env.NODE_ENV === "production") {
+    const react = path.join("build");
+    app.use(express.static(react));
+    app.get("*", function (req, res) {
+      res.sendFile("index.html", { root: react });
+    });
+  }
 
   logger.info(`Server listening on http://localhost:${PORT}`);
 });

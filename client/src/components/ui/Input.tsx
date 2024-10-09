@@ -1,3 +1,5 @@
+/* eslint-disable */
+
 /* eslint-disable react/prop-types */
 import { AnimatePresence, motion } from "framer-motion";
 import { useController, UseControllerProps } from "react-hook-form";

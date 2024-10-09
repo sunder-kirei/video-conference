@@ -1,7 +1,27 @@
-version: '3'
 services:
-  server:
-    image: video
-    build: .
+  prod:
+    build: 
+      dockerfile: Dockerfile
+      target: prod
+    deploy:
+      mode: replicated
+      replicas: 3
+    environment:
+      - NODE_ENV=production
+    env_file:
+      - .env.server
+      - .env.client
+    networks:
+      - inner_network
+  
+  proxy:
+    image: haproxy
+    networks:
+      - inner_network
     ports:
-      - 443:443
+      - 80:80
+    volumes:
+      - ./haproxy:/usr/local/etc/haproxy
+networks:
+  inner_network:
+    driver: bridge
