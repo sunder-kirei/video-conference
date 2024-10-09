@@ -5,7 +5,7 @@ import { CreateAccount, LoginUser } from "../../types";
 export const api = createApi({
   reducerPath: "authApi",
   baseQuery: fetchBaseQuery({
-    baseUrl: "/api/auth",
+    baseUrl: `${process.env.REACT_APP_BACKEND}/api/auth`,
     credentials: "include",
   }),
   endpoints: ({ mutation }) => {

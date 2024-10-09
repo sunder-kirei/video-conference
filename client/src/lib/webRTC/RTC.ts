@@ -56,7 +56,7 @@ export class RTC {
     constraints: Constraints = { audio: true, video: true },
   ) {
     if (config) this.config = config;
-    this.socket = io("/", {
+    this.socket = io(`${process.env.REACT_APP_BACKEND}`, {
       withCredentials: true,
     });
     this.stream = stream;
