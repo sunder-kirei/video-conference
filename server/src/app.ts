@@ -3,7 +3,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import express from "express";
 import session from "express-session";
-import { createServer } from "https";
+import { createServer } from "http";
 import { readFileSync } from "fs";
 import ShortUniqueId from "short-unique-id";
 import { Server } from "socket.io";
@@ -18,10 +18,6 @@ import { MemDB } from "./types";
 
 // TODO add entry in DB and use its id
 export const { randomUUID: uid } = new ShortUniqueId({ length: 5 });
-const options = {
-  key: readFileSync("./server-key.pem"),
-  cert: readFileSync("./server-cert.pem"),
-};
 
 const memDB: MemDB = {
   rooms: {},
@@ -29,7 +25,7 @@ const memDB: MemDB = {
 };
 dotenv.config();
 
-const PORT = process.env.PORT ?? 443;
+const PORT = process.env.PORT ?? 8080;
 const app = express();
 
 app.use(
@@ -48,7 +44,7 @@ app.use(
 );
 app.use(express.json());
 
-const httpsServer = createServer(options, app);
+const httpsServer = createServer(app);
 
 const io = new Server(httpsServer, {
   cors: {
