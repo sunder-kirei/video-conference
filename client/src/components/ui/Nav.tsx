@@ -9,7 +9,7 @@ function Nav() {
   const navigate = useNavigate();
 
   return (
-    <nav className="h-20 w-full border-b p-4">
+    <nav className="fixed left-0 top-0 z-[100] h-20 w-full border-b bg-white p-4">
       <ul className="flex h-full justify-between">
         <li
           className="flex h-full w-fit cursor-pointer items-center gap-x-4 font-heading text-4xl"

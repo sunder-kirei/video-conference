@@ -69,10 +69,6 @@ body {
   grid-gap: var(--grid-layout-gap);
 }
 
-.video-container {
-  @apply relative h-fit w-full;
-}
-
 .video-container:hover .rnd_btn {
   @apply translate-y-0 opacity-100;
 }

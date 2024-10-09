@@ -31,7 +31,7 @@ export default function Page({
         ease: "easeInOut",
       }}
       className={twMerge(
-        "h-full w-full overflow-y-auto overflow-x-hidden",
+        "h-screen w-full overflow-x-hidden overflow-y-hidden pt-20",
         props.className,
       )}
     >

@@ -11,6 +11,8 @@ services:
         target: /usr/app/node_modules 
     environment:
       - WATCHPACK_POLLING=true
+      - WDS_SOCKET_HOST=127.0.0.1
+      - CHOKISAR_USEPOLLING=true
     env_file:
       - .env.client
     ports:

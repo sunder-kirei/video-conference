@@ -11,6 +11,7 @@ import { useAppDispatch, useAppSelector } from "../hooks/redux";
 import { RTC } from "../lib/webRTC/RTC";
 import { createRTC, selectMedia } from "../store/services/media";
 import { RoomAck, RTCUser } from "../types";
+import { twMerge } from "tailwind-merge";
 
 function CallPage() {
   const [remoteStreams, setRemoteStreams] = useState<MediaStream[]>([]);
@@ -74,10 +75,15 @@ function CallPage() {
     navigate("/");
     media.rtc?.free();
   }
-
+  console.log(remoteStreams);
   return (
     <Page className="flex flex-col">
-      <div className="video-grid h-full w-full items-center overflow-y-auto p-4">
+      <div
+        className={twMerge(
+          "h-full w-full items-center overflow-y-auto p-4",
+          remoteStreams.length === 0 ? "grid place-items-center" : "video-grid",
+        )}
+      >
         {remoteStreams.map((stream) => {
           const user = remoteUsers.find(({ streams }) => {
             if (streams.find((sid) => sid === stream.id)) return true;
@@ -105,14 +111,14 @@ function CallPage() {
       </div>
       <div className="controls relative flex h-24 w-full items-center justify-center gap-x-4 font-semibold">
         <button
-          className="copy absolute left-4 flex items-center justify-center gap-x-4 rounded-lg border-2 border-blue-600 p-2 text-lg text-blue-600"
+          className="copy absolute left-4 flex items-center justify-center gap-x-4 rounded-lg border-2 border-blue-600 bg-white p-2 text-lg text-blue-600"
           title="Copy link"
           onClick={() => {
             handleCopy();
           }}
         >
           <Copy />
-          <span>{location.pathname}</span>
+          <span className="hidden md:inline">{location.pathname}</span>
         </button>
         <RoundedButton
           className="rnd_danger"

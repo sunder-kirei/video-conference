@@ -62,7 +62,13 @@ export default function StreamVideo({
   const audioEnabled = media.audio.streamEnabled;
 
   return (
-    <div {...props} className={twMerge("video-container", className)}>
+    <div
+      {...props}
+      className={twMerge(
+        "video-container relative aspect-video max-h-full w-full overflow-hidden bg-white",
+        className,
+      )}
+    >
       <AppVideo
         id="source-video"
         srcObject={media.stream}

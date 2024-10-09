@@ -13,15 +13,15 @@ export default function Home() {
   }
 
   return (
-    <Page id="home-page" className="home-page grid">
-      <div className="flex h-full w-full items-center p-4">
-        <StreamVideo />
+    <Page id="home-page" className="flex flex-col lg:flex-row">
+      <div className="grid h-full w-full place-items-center overflow-hidden p-4">
+        <StreamVideo className="my-auto" />
       </div>
-      <div className="flex h-full w-full flex-col items-center justify-center gap-y-4">
+      <div className="flex h-full w-full min-w-fit flex-col items-center justify-center gap-y-4 p-4">
         <input
           title="roomID"
           placeholder="Enter roomID to join; blank to create"
-          className="z-10 w-full min-w-fit max-w-96 rounded border p-4 text-xl outline-blue-600"
+          className="z-10 w-full max-w-96 rounded border p-4 text-xl outline-blue-600"
           value={roomID}
           onChange={({ target }) => setRoomID(target.value)}
         />

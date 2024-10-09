@@ -5,7 +5,7 @@ type Props = VideoHTMLAttributes<HTMLVideoElement> & {
   srcObject?: MediaStream;
 };
 
-function AppVideo({ srcObject, ...props }: Props) {
+function AppVideo({ srcObject, className, ...props }: Props) {
   const refVideo = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
@@ -18,8 +18,8 @@ function AppVideo({ srcObject, ...props }: Props) {
       ref={refVideo}
       {...props}
       className={twMerge(
-        "aspect-video w-full rounded-sm border bg-black object-cover",
-        props.className,
+        "h-full w-full rounded-sm border bg-black object-contain",
+        className,
       )}
     />
   );
