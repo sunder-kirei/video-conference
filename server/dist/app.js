@@ -22,6 +22,7 @@ const express_session_1 = __importDefault(require("express-session"));
 const http_1 = require("http");
 const short_unique_id_1 = __importDefault(require("short-unique-id"));
 const socket_io_1 = require("socket.io");
+const path_1 = __importDefault(require("path"));
 const connectToDB_1 = __importDefault(require("./lib/connectToDB"));
 const GoogleAuth_1 = require("./lib/GoogleAuth");
 const logger_1 = __importDefault(require("./lib/logger"));
@@ -34,7 +35,7 @@ const memDB = {
     socketInfo: new Map(),
 };
 dotenv_1.default.config();
-const PORT = (_a = process.env.PORT) !== null && _a !== void 0 ? _a : 8080;
+const PORT = (_a = process.env.PORT) !== null && _a !== void 0 ? _a : 80;
 const app = (0, express_1.default)();
 app.use((0, cors_1.default)({
     origin: `${process.env.FRONTEND_ORIGIN}`,
@@ -59,10 +60,12 @@ httpsServer.listen(PORT, () => __awaiter(void 0, void 0, void 0, function* () {
     GoogleAuth_1.GoogleAuth.init(process.env.CLIENT_ID, process.env.CLIENT_SECRET, process.env.REDIRECT_URL);
     (0, socket_1.default)(io, memDB);
     (0, routes_1.default)(app);
-    // const react = path.join("client", "build");
-    // app.use(express.static(react));
-    // app.get("*", function (req, res) {
-    //   res.sendFile("index.html", { root: react });
-    // });
+    if (process.env.NODE_ENV === "production") {
+        const react = path_1.default.join("build");
+        app.use(express_1.default.static(react));
+        app.get("*", function (req, res) {
+            res.sendFile("index.html", { root: react });
+        });
+    }
     logger_1.default.info(`Server listening on http://localhost:${PORT}`);
 }));

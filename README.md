@@ -23,6 +23,7 @@ A scalable, real-time video conferencing application built using **Node.js** and
 - **Database**: MongoDB Atlas
 - **WebRTC**: For real-time communication
 - **Docker**: Containerization
+- **haproxy**: Load balancing and reverse proxy
 - **Single Forwarding Unit (SFU)**: Media distribution
 
 ## Prerequisites
@@ -41,7 +42,7 @@ Before running the project, ensure you have the following installed:
    ```
 2. **Set Environment Variables**:
 
-- Create a `.env` file in the root directory.
+- Create a `.env.server` file in the root directory.
 - Add the following keys, also mentioned in
 
   ```bash
@@ -49,7 +50,6 @@ Before running the project, ensure you have the following installed:
   ```
 
   ```bash
-    PORT=<your-port-number>
     FRONTEND_ORIGIN=<your-frontend-url>
     CLIENT_ID=<your-client-id>
     CLIENT_SECRET=<your-client-secret>
@@ -63,17 +63,45 @@ Before running the project, ensure you have the following installed:
     REFRESH_TOKEN_TTL=<refresh-token-time-to-live>
   ```
 
+- Create a `.env.client` file in the root directory.
+- Add the following keys, also mentioned in
+
+  ```bash
+    ./client/environment.d.ts
+  ```
+
+  ```bash
+    REACT_APP_BACKEND=<localhost:PORT(same as defined below)>
+  ```
+
+- Create a `.env` file in the root directory for `docker-compose.yml.
+- Add the following keys,
+
+  ```bash
+    PORT=<PORT for backend server defaults to 80>
+  ```
+
 3. **Run the App using Docker Compose**:
 
-   ```docker
-    docker-compose up
-   ```
+- **PRODUCTION** with 3 server instances and static serving of react with haproxy -
+
+```docker
+ docker-compose -f docker-compose.yml up --detach
+```
+
+- **DEVELOPMENT** with 1 server and 1 react instance with Hot Reloading-
+
+```docker
+  docker compose -f docker-compose-dev.yml up
+```
 
 ## Usage
 
 Once the containers are running, access the application in your browser at:
 
-> > https://localhost:443
+> http://localhost:3001 **in dev**
+
+> http://localhost:80 **in prod**
 
 You can create a new room or join an existing one to start a video conference. The app supports multiple participants, with audio and video streams managed through WebRTC.
 
