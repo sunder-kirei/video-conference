@@ -104,7 +104,8 @@ export class RTC {
       this.ignoreOffer = !this.isPolite && offerCollision;
       if (this.ignoreOffer) return;
 
-      await this.rtc!.setRemoteDescription(remoteOffer);
+      if (this.rtc?.signalingState !== "stable")
+        await this.rtc!.setRemoteDescription(remoteOffer);
 
       if (remoteOffer.type === "offer") {
         await this.rtc!.setLocalDescription();

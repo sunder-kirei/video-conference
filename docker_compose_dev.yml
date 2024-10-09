@@ -1,0 +1,20 @@
+version: '3'
+services:
+  dev_client:
+    image: video/dev_client
+    build: 
+      dockerfile: Dockerfile
+      target: dev_client
+    env_file:
+      - .env.client
+    ports:
+      - 3001:3000
+  dev_server:
+    image: video/dev_server
+    build: 
+      dockerfile: Dockerfile
+      target: dev_server
+    env_file:
+      - .env.server
+    ports:
+      - 3000:8080
